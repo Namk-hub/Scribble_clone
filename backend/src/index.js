@@ -21,17 +21,11 @@ app.get('/',(req,res)=>{
   res.send("your server is running successfully")
 })
 
-io.on("connection",(socket)=>{
-  console.log("user connected successfully",socket.id)
 
-  socket.on("disconnect",()=>{
-    console.log("user disconnected !",socket.id)
-  })
-})
 
 const PORT=process.env.PORT || 3000
 server.listen(PORT,()=>{
   console.log(`server is runing at http://localhost:${PORT}/`)
 });
 
-
+export default io;

@@ -7,7 +7,10 @@ const rooms=new Map()
 function createRoom(playerName,socketId){
   const room={
     id:uuid(),
-    players:[{id:socketId,name:playerName}]
+    players:[{id:socketId,name:playerName}],
+    currentDrawer:null,
+    phase:'waiting',
+    scores:{}
   };
   rooms.set(room.id,room);
   return room
@@ -15,7 +18,7 @@ function createRoom(playerName,socketId){
 function joinRoom(roomID,playerName,socketId){
   const find_room=rooms.get(roomID)
   if(!find_room){
-    return console.log("invalid roomID")
+    return {error:"invalid roomID"}
   }
   find_room.players.push({id:socketId,name:playerName})
   return find_room;
@@ -24,9 +27,14 @@ function joinRoom(roomID,playerName,socketId){
 function removePlayer(roomId,socketId){
   const find_room=rooms.get(roomId)
   if(!find_room){
-    return console.log("invalid roomID")
+    return {error:"invalid roomID"}
   }
   find_room.players=find_room.players.filter(player=> player.id!=socketId )
+  
+  if (find_room.players.length === 0) {
+      rooms.delete(roomId)
+      return { find_room, roomId, wasDeleted:true}
+    }
   return find_room
 }
 
