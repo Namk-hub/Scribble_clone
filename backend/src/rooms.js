@@ -14,10 +14,10 @@ function createRoom(playerName,socketId){
     currentWord: null,
     round: 0,
     maxRounds: 3,
-    scores: [],
-    drawerQueue: [],
-}
+    scores: {},
+    drawerQueue: [],}
   };
+  room.gameState.scores[socketId]=0
   rooms.set(room.id,room);
   return room
 }
@@ -27,7 +27,7 @@ function joinRoom(roomID,playerName,socketId){
     return {error:"invalid roomID"}
   }
   find_room.players.push({id:socketId,name:playerName})
-  room.gameState.scores.push({score:0,name:playerName})
+  find_room.gameState.scores[socketId]=0
   return find_room;
 }
 
@@ -40,9 +40,9 @@ function removePlayer(roomId,socketId){
   
   if (find_room.players.length === 0) {
       rooms.delete(roomId)
-      return { find_room, roomId, wasDeleted:true}
+      return { find_room, wasDeleted:true}
     }
-  return find_room
+  return {find_room,wasDeleted:false}
 }
 
 export default  {rooms,createRoom,joinRoom,removePlayer}
