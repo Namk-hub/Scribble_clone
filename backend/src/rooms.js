@@ -14,6 +14,7 @@ function createRoom(playerName,socketId){
     currentWord: null,
     round: 0,
     maxRounds: 3,
+    correctGuessers: [],
     scores: {},
     drawerQueue: [],}
   };
@@ -40,7 +41,7 @@ function removePlayer(roomId,socketId){
   
   if (find_room.players.length === 0) {
       rooms.delete(roomId)
-      return { find_room, wasDeleted:true}
+      return { wasDeleted:true}
     }
   return {find_room,wasDeleted:false}
 }
