@@ -8,9 +8,15 @@ function createRoom(playerName,socketId){
   const room={
     id:uuid(),
     players:[{id:socketId,name:playerName}],
-    currentDrawer:null,
-    phase:'waiting',
-    scores:{}
+    gameState: {
+    phase: 'waiting',
+    currentDrawer: null,
+    currentWord: null,
+    round: 0,
+    maxRounds: 3,
+    scores: [],
+    drawerQueue: [],
+}
   };
   rooms.set(room.id,room);
   return room
@@ -21,6 +27,7 @@ function joinRoom(roomID,playerName,socketId){
     return {error:"invalid roomID"}
   }
   find_room.players.push({id:socketId,name:playerName})
+  room.gameState.scores.push({score:0,name:playerName})
   return find_room;
 }
 
