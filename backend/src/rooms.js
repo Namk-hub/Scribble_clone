@@ -47,6 +47,9 @@ function removePlayer(roomId,socketId){
 
   function StartGame(roomId){
     const room=rooms.get(roomId)
+     if(!find_room){
+    return {error:"invalid roomID"}
+    }
     room.gameState.drawerQueue=room.players.map(p=>p.id)
     room.gameState.phase="picking"
     return nextTurn(roomId)
@@ -54,6 +57,9 @@ function removePlayer(roomId,socketId){
 
   function nextTurn(roomId){
     const room=rooms.get(roomId)
+     if(!find_room){
+    return {error:"invalid roomID"}
+    }
     room.gameState.currentDrawer=room.gameState.drawerQueue.shift()
     room.gameState.round+=1
     room.gameState.currentWord=null
@@ -61,5 +67,21 @@ function removePlayer(roomId,socketId){
     return{room,list}
   }
 
-
-export default  {rooms,createRoom,joinRoom,removePlayer,StartGame,nextTurn}
+  function submitGuess(roomId,guess,socketId){
+    const room=rooms.get(roomId)
+     if(room){
+    return {error:"invalid roomID"}
+    }
+    const eligibleCount=room.players.length -1 
+    if(room.gameState.currentWord===guess){
+      room.gameState.correctGuessers.push(socketId)
+      const points = (room.players.length * 100) - (room.gameState.correctGuessers.length * 100)
+      room.gameState.scores[socketId]+=points
+      const turnOver=room.gameState.correctGuessers.length
+      return{points,correct:true,turnOver:eligibleCount==turnOver}
+    }
+    else{
+      return{correct:false}
+    }
+  }
+export default  {rooms,createRoom,joinRoom,removePlayer,StartGame,nextTurn,submitGuess}

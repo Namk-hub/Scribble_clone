@@ -42,6 +42,24 @@ io.on("connection",(socket)=>{
     io.to(room.id).emit("drawingStarted","drawing has beginnn")
   })
 
+  socket.on("guess",({guess})=>{
+    if (!socket.roomId) return
+    const room=roomManager.rooms.get(socket.roomId)
+    if (room.gameState.phase!='drawing') return
+    if(room.gameState.currentDrawer===socket.id) return
+    if(room.gameState.correctGuessers.includes(socket.id)) return
+    const result=roomManager.submitGuess(socket.roomId,guess,socket.id)
+    if (!result.correct) return
+    io.to(room.id).emit("correctGuess",{ id: socket.id, points: result.points })
+
+    //clearing timerr
+    if(result.turnOver){
+      const {room:updatedRoom,list}=roomManager.nextTurn(socket.roomId)
+      io.to(updatedRoom.gameState.currentDrawer).emit("wordChoices", list)
+      io.to(updatedRoom.id).emit("turnStarted", `${updatedRoom.gameState.currentDrawer} is picking!`)
+    
+    }
+  })
 
   socket.on("disconnect",()=>{
     if (!socket.roomId) return
