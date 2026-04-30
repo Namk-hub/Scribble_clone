@@ -5,6 +5,7 @@ import roomManager from "./rooms";
 io.on("connection",(socket)=>{
   console.log("user connected successfully",socket.id)
   socket.on("createRoom",({playerName})=>{
+     console.log("createRoom received", playerName)
     const room=roomManager.createRoom(playerName,socket.id)
     socket.roomId=room.id
     socket.join(room.id)

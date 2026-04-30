@@ -1,12 +1,15 @@
-import { useState } from 'react'
 import { useEffect } from "react";
-import './App.css'
-import socket from "./socket"
+import socket from "./socket";
+import Lobby from "./Lobby";
 
-function App(){
-  useEffect(
-    socket.on("connection",()=>{
-    console.log("connected to the server successfully",socket.id)
-  })
-)}
-export default (App)
+function App() {
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("connected", socket.id)
+    })
+  }, [])
+
+  return <Lobby />
+}
+
+export default App
