@@ -9,7 +9,7 @@ io.on("connection",(socket)=>{
     socket.roomId=room.id
     socket.join(room.id)
     socket.emit("created successfully",room)
-  })
+  });
 
   socket.on("joinRoom",({roomId,playerName})=>{
     const find_room=roomManager.joinRoom(roomId,playerName,socket.id)
@@ -19,7 +19,29 @@ io.on("connection",(socket)=>{
     socket.roomId=roomId
     socket.join(find_room.id)
     io.to(find_room.id).emit("message",`${playerName}has joined!` )
+  });
+
+
+  socket.on("startGame",()=>{
+    if (!socket.roomId) return
+    const room=roomManager.rooms.get(socket.roomId)
+    if (socket.id===room.players[0].id){
+      const returnvalue=roomManager.StartGame(socket.roomId)
+      const list=returnvalue.list
+      io.to(room.gameState.currentDrawer).emit("wordChoices",list)
+      io.to(room.id).emit("turnStarted",`${room.gameState.currentDrawer} is picking!`)
+    }
+   
+  });
+  
+  socket.on("pickWord",(drawerWord)=>{
+     if (!socket.roomId) return
+    const room=roomManager.rooms.get(socket.roomId)
+    room.gameState.currentWord=drawerWord
+    room.gameState.phase="drawing"
+    io.to(room.id).emit("drawingStarted","drawing has beginnn")
   })
+
 
   socket.on("disconnect",()=>{
     if (!socket.roomId) return
@@ -38,5 +60,5 @@ io.on("connection",(socket)=>{
     }
   
     io.to(find_room.id).emit("message",`${player.name} has disconnected!` )
-  })
+  });
 })

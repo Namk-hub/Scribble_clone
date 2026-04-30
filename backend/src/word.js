@@ -62,10 +62,12 @@ const words = {
 function getRandomWords(round) {
   let list;
 
-  if (round === 1) list = words.easy;
-  else if (round === 2) list = words.medium;
+  if (round ===1) list = words.easy;
+  else if (round <3) list = words.medium;
   else list = words.hard;
 
   const index = Math.floor(Math.random() * list.length);
   return list[index];
 }
+
+export default { getRandomWords}

@@ -1,6 +1,6 @@
 
 import { v4 as uuid } from 'uuid'
-
+import words from "./word"
 const rooms=new Map()
 
 
@@ -13,7 +13,6 @@ function createRoom(playerName,socketId){
     currentDrawer: null,
     currentWord: null,
     round: 0,
-    maxRounds: 3,
     correctGuessers: [],
     scores: {},
     drawerQueue: [],}
@@ -44,6 +43,23 @@ function removePlayer(roomId,socketId){
       return { wasDeleted:true}
     }
   return {find_room,wasDeleted:false}
-}
+  }
 
-export default  {rooms,createRoom,joinRoom,removePlayer}
+  function StartGame(roomId){
+    const room=rooms.get(roomId)
+    room.gameState.drawerQueue=room.players.map(p=>p.id)
+    room.gameState.phase="picking"
+    return nextTurn(roomId)
+  }
+
+  function nextTurn(roomId){
+    const room=rooms.get(roomId)
+    room.gameState.currentDrawer=room.gameState.drawerQueue.shift()
+    room.gameState.round+=1
+    room.gameState.currentWord=null
+    const list=words.getRandomWords()
+    return{room,list}
+  }
+
+
+export default  {rooms,createRoom,joinRoom,removePlayer,StartGame,nextTurn}
