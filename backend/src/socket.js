@@ -1,8 +1,9 @@
-import io from "./index";
-import roomManager from "./rooms";
+import roomManager from "./rooms.js";
 
 
-io.on("connection",(socket)=>{
+export default function initSocket(io) {
+
+  io.on("connection",(socket)=>{
   console.log("user connected successfully",socket.id)
   socket.on("createRoom",({playerName})=>{
      console.log("createRoom received", playerName)
@@ -11,6 +12,12 @@ io.on("connection",(socket)=>{
     socket.join(room.id)
     socket.emit("created successfully",room)
   });
+  //here socket.id doesnt exist due to refresh page effect
+  socket.on("getRoomData",({roomId})=>{
+    const room=roomManager.rooms.get(roomId)
+    if (!room) return socket.emit("error", "room not found")
+    socket.emit("RoomData",room)
+  })
 
   socket.on("joinRoom",({roomId,playerName})=>{
     const find_room=roomManager.joinRoom(roomId,playerName,socket.id)
@@ -81,3 +88,4 @@ io.on("connection",(socket)=>{
     io.to(find_room.id).emit("message",`${player.name} has disconnected!` )
   });
 })
+}

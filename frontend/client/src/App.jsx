@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import socket from "./socket";
-import Lobby from "./Lobby";
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Lobby from './Lobby'
+import Room from './Room'
 
 function App() {
   useEffect(() => {
@@ -9,7 +11,14 @@ function App() {
     })
   }, [])
 
-  return <Lobby />
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Lobby />} />
+        <Route path="/room/:roomId" element={<Room />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App

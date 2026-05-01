@@ -4,11 +4,10 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import {Server} from "socket.io"
+import initSocket from "./socket.js"
 
 const app=express();
 dotenv.config();
-
-
 
 const server=http.createServer(app)
 const io=new Server(server , {
@@ -16,6 +15,7 @@ const io=new Server(server , {
     origin:"http://localhost:5173",
   },
 })
+initSocket(io)
 
 app.get('/',(req,res)=>{
   res.send("your server is running successfully")

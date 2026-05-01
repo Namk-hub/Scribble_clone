@@ -1,13 +1,24 @@
 import './Lobby.css'
-import { useState } from 'react'
+import { useEffect,useState } from "react";
 import socket from './socket'
+import { useNavigate } from 'react-router-dom'
 
 
 
 function Lobby() {
+  const navigate = useNavigate()
   const [playerName, setPlayerName] = useState('')
   const [roomId, setRoomId] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState(0)
+  
+  useEffect(() => {
+    socket.on("created successfully", (room) => {
+      navigate(`/room/${room.id}`)
+    })
+
+    return () => socket.off("created successfully")
+  }, [])
+
 
   function handleCreate() {
   console.log("emitting createRoom", playerName)

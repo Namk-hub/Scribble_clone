@@ -1,12 +1,11 @@
 
-import { v4 as uuid } from 'uuid'
-import words from "./word"
+import words from "./word.js"
 const rooms=new Map()
 
 
 function createRoom(playerName,socketId){
   const room={
-    id:uuid(),
+    id:Math.random().toString(36).substring(2, 8).toUpperCase(),
     players:[{id:socketId,name:playerName}],
     gameState: {
     phase: 'waiting',
@@ -47,7 +46,7 @@ function removePlayer(roomId,socketId){
 
   function StartGame(roomId){
     const room=rooms.get(roomId)
-     if(!find_room){
+     if(!room){
     return {error:"invalid roomID"}
     }
     room.gameState.drawerQueue=room.players.map(p=>p.id)
@@ -57,7 +56,7 @@ function removePlayer(roomId,socketId){
 
   function nextTurn(roomId){
     const room=rooms.get(roomId)
-     if(!find_room){
+     if(!room){
     return {error:"invalid roomID"}
     }
     room.gameState.currentDrawer=room.gameState.drawerQueue.shift()
@@ -69,7 +68,7 @@ function removePlayer(roomId,socketId){
 
   function submitGuess(roomId,guess,socketId){
     const room=rooms.get(roomId)
-     if(room){
+     if(!room){
     return {error:"invalid roomID"}
     }
     const eligibleCount=room.players.length -1 
