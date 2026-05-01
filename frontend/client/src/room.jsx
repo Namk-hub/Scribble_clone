@@ -1,4 +1,3 @@
-// Room.jsx
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import socket from './socket'
@@ -7,19 +6,37 @@ import './Room.css'
 const MAX_PLAYERS = 8
 
 function Room() {
+  
   const { roomId } = useParams()
   const navigate = useNavigate()
   const [room, setRoom] = useState(null)
-
+  const myClientId = localStorage.getItem("clientId");
   useEffect(() => {
+   let clientId = localStorage.getItem("clientId");
+    if (!clientId) {
+        clientId = Math.random().toString(36).substring(2, 10);
+        localStorage.setItem("clientId", clientId);
+    }
 
-    socket.emit("getRoomData", { roomId })
+    const savedName = localStorage.getItem("playerName") || "Anonymous";
+    function onConnect() {
+      socket.emit("joinRoom", { roomId, playerName: savedName,clientId})
+      socket.emit("getRoomData", { roomId })
+  }
+
+  // if already connected, run immediately
+  // if not, wait for connection first
+    if (socket.connected) {
+      onConnect()
+    } else {
+      socket.on("connect", onConnect)
+    }
+
     socket.on("RoomData", (room) => setRoom(room))
-    socket.on("playerJoined", (players) => {
-    setRoom(prev => prev ? { ...prev, players } : prev)
-    })
+    socket.on("playerUpdate", (updatedRoom) => setRoom(updatedRoom));
 
     return () => {
+      socket.off("connect", onConnect)
       socket.off("RoomData")
       socket.off("playerJoined")
   }
@@ -28,6 +45,7 @@ function Room() {
   if (!room) return <div>Loading...</div>
 
   const emptySlots = MAX_PLAYERS - room.players.length
+  const isHost = myClientId === room.hostClientId;
 
   return (
     <div className="room-page">
@@ -49,7 +67,7 @@ function Room() {
             <div className="players-section">
               <p className="label">PLAYERS ({room.players.length}/{MAX_PLAYERS})</p>
               {room.players.map((player, i) => (
-                <div key={player.id} className="player-row">
+                <div key={player.clientId} className="player-row">
                   <span className="player-name">{player.name}</span>
                   {player.id===room.hostId  && <span className="host-badge">HOST</span>}
                 </div>
@@ -61,10 +79,12 @@ function Room() {
               ))}
             </div>
 
+            {isHost && (
             <button className="start-btn" onClick={() => socket.emit("startGame")}>
               ▶ Start Game
             </button>
-            <p className="host-note">🔒 Only the host can start the game</p>
+          )}
+          {<p className="host-note">🔒 Only the host can start the game</p>}
           </div>
 
           <div className="main-area">

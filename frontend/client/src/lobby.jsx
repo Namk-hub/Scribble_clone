@@ -27,12 +27,16 @@ function Lobby() {
 
 
   function handleCreate() {
+  const clientId = localStorage.getItem("clientId")
+  localStorage.setItem("playerName", playerName)
   console.log("emitting createRoom", playerName)
-  socket.emit("createRoom", { playerName })
+  socket.emit("createRoom", { playerName,clientId})
 }
   
  function handleJoin() {
-  socket.emit("joinRoom", { roomId, playerName })
+  const clientId = localStorage.getItem("clientId")
+  localStorage.setItem("playerName", playerName)
+  socket.emit("joinRoom", { roomId, playerName,clientId})
 }
 
   return (

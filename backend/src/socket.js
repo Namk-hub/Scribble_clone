@@ -12,7 +12,7 @@ export default function initSocket(io) {
     socket.join(room.id)
     socket.emit("created successfully",room)
   });
-  
+
   //here socket.id doesnt exist due to refresh page effect
   socket.on("getRoomData",({roomId})=>{
     const room=roomManager.rooms.get(roomId)
@@ -27,7 +27,8 @@ export default function initSocket(io) {
     }
     socket.roomId=roomId
     socket.join(roomId)
-    io.to(roomId).emit("playerJoined",result.players)
+    io.to(roomId).emit("playerUpdate", result);
+    
     socket.emit("joinedRoom", result)
     
   });
@@ -39,7 +40,10 @@ export default function initSocket(io) {
     if (socket.id===room.hostId){
       const returnvalue=roomManager.StartGame(socket.roomId)
       const list=returnvalue.list
-      io.to(room.gameState.currentDrawer).emit("wordChoices",list)
+      const drawer = room.players.find(p => p.clientId === room.gameState.currentDrawer);
+      if (drawer) {
+        io.to(drawer.id).emit("wordChoices", list);
+      }
       io.to(room.id).emit("turnStarted",`${room.gameState.currentDrawer} is picking!`)
     }
    
@@ -56,16 +60,30 @@ export default function initSocket(io) {
   socket.on("guess",({guess})=>{
     if (!socket.roomId) return
     const room=roomManager.rooms.get(socket.roomId)
+
+    // Find the person guessing so we can get their clientId
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+
     if (room.gameState.phase!='drawing') return
-    if(room.gameState.currentDrawer===socket.id) return
-    if(room.gameState.correctGuessers.includes(socket.id)) return
+
+    if (room.gameState.currentDrawer === player.clientId) return;
+    if (room.gameState.correctGuessers.includes(player.clientId)) return;
+
     const result=roomManager.submitGuess(socket.roomId,guess,socket.id)
     if (!result.correct) return
-    io.to(room.id).emit("correctGuess",{ id: socket.id, points: result.points })
+    io.to(room.id).emit("correctGuess", { clientId: result.clientId, points: result.points })
 
     //clearing timerr
     if(result.turnOver){
       const {room:updatedRoom,list}=roomManager.nextTurn(socket.roomId)
+
+      // Find the new drawer's socket
+      const nextDrawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
+      
+      if (nextDrawer) {
+        io.to(nextDrawer.id).emit("wordChoices", list);
+      }
       io.to(updatedRoom.gameState.currentDrawer).emit("wordChoices", list)
       io.to(updatedRoom.id).emit("turnStarted", `${updatedRoom.gameState.currentDrawer} is picking!`)
     
@@ -76,15 +94,18 @@ export default function initSocket(io) {
     if (!socket.roomId) return
     const room=roomManager.rooms.get(socket.roomId)
     if(!room) return 
+
     const players=room.players
     const player=players.find(player => player.id===socket.id)
     const result=roomManager.removePlayer(socket.roomId,socket.id)
-    if(result.error){
-      return socket.emit("error","wrong roomId")
-    }
-    if(result.wasDeleted) return 
-     io.to(result.find_room.id).emit("playerJoined", result.find_room.players)
-    io.to(result.find_room.id).emit("message",`${player?.name} has disconnected!` )
-  });
+
+    if (result.error) return        // invalid roomId
+  if (result.wasDeleted) return   // last player left, room gone
+
+  
+  // In initSocket disconnect:
+  io.to(result.room.id).emit("playerUpdate", result.room);
+  io.to(result.room.id).emit("message", `${player?.name} has disconnected!`)
+})
 })
 }
