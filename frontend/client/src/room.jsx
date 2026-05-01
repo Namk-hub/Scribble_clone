@@ -10,15 +10,15 @@ function Room() {
   const { roomId } = useParams()
   const navigate = useNavigate()
   const [room, setRoom] = useState(null)
-  const myClientId = localStorage.getItem("clientId");
+  const myClientId = sessionStorage.getItem("clientId");
   useEffect(() => {
-   let clientId = localStorage.getItem("clientId");
+   let clientId = sessionStorage.getItem("clientId");
     if (!clientId) {
         clientId = Math.random().toString(36).substring(2, 10);
-        localStorage.setItem("clientId", clientId);
+        sessionStorage.setItem("clientId", clientId);
     }
 
-    const savedName = localStorage.getItem("playerName") || "Anonymous";
+    const savedName = sessionStorage.getItem("playerName") || "Anonymous";
     function onConnect() {
       socket.emit("joinRoom", { roomId, playerName: savedName,clientId})
       socket.emit("getRoomData", { roomId })

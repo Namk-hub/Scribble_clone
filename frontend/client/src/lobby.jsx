@@ -27,15 +27,23 @@ function Lobby() {
 
 
   function handleCreate() {
-  const clientId = localStorage.getItem("clientId")
-  localStorage.setItem("playerName", playerName)
+  let clientId = sessionStorage.getItem("clientId")
+  if (!clientId) {
+    clientId = Math.random().toString(36).substring(2, 10)
+    sessionStorage.setItem("clientId", clientId)
+  }
+  sessionStorage.setItem("playerName", playerName)
   console.log("emitting createRoom", playerName)
   socket.emit("createRoom", { playerName,clientId})
 }
   
  function handleJoin() {
-  const clientId = localStorage.getItem("clientId")
-  localStorage.setItem("playerName", playerName)
+  let clientId = sessionStorage.getItem("clientId")
+  if (!clientId) {
+    clientId = Math.random().toString(36).substring(2, 10)
+    sessionStorage.setItem("clientId", clientId)
+  }
+  sessionStorage.setItem("playerName", playerName)
   socket.emit("joinRoom", { roomId, playerName,clientId})
 }
 

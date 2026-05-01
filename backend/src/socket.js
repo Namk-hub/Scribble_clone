@@ -5,9 +5,9 @@ export default function initSocket(io) {
 
   io.on("connection",(socket)=>{
   console.log("user connected successfully",socket.id)
-  socket.on("createRoom",({playerName})=>{
+  socket.on("createRoom",({playerName, clientId})=>{
      console.log("createRoom received", playerName)
-    const room=roomManager.createRoom(playerName,socket.id)
+    const room=roomManager.createRoom(playerName,socket.id, clientId)
     socket.roomId=room.id
     socket.join(room.id)
     socket.emit("created successfully",room)
@@ -20,8 +20,8 @@ export default function initSocket(io) {
     socket.emit("RoomData",room)
   })
 
-  socket.on("joinRoom",({roomId,playerName})=>{
-    const result=roomManager.joinRoom(roomId,playerName,socket.id)
+  socket.on("joinRoom",({roomId,playerName, clientId})=>{
+    const result=roomManager.joinRoom(roomId,playerName,socket.id, clientId)
     if(result.error){
       return socket.emit("error","wrong roomId")
     }
@@ -92,20 +92,23 @@ export default function initSocket(io) {
 
   socket.on("disconnect",()=>{
     if (!socket.roomId) return
-    const room=roomManager.rooms.get(socket.roomId)
-    if(!room) return 
+    const roomId = socket.roomId;
+    const oldSocketId = socket.id;
 
-    const players=room.players
-    const player=players.find(player => player.id===socket.id)
-    const result=roomManager.removePlayer(socket.roomId,socket.id)
+    setTimeout(() => {
+      const room = roomManager.rooms.get(roomId);
+      if (!room) return;
 
-    if (result.error) return        // invalid roomId
-  if (result.wasDeleted) return   // last player left, room gone
+      const player = room.players.find(p => p.id === oldSocketId);
+      if (!player) return; // Player reconnected (socket ID updated) or already removed
 
-  
-  // In initSocket disconnect:
-  io.to(result.room.id).emit("playerUpdate", result.room);
-  io.to(result.room.id).emit("message", `${player?.name} has disconnected!`)
-})
+      const result = roomManager.removePlayer(roomId, oldSocketId);
+      if (result.error) return;
+      if (result.wasDeleted) return;
+    
+      io.to(result.room.id).emit("playerUpdate", result.room);
+      io.to(result.room.id).emit("message", `${player.name} has disconnected!`);
+    }, 5000);
+  })
 })
 }
