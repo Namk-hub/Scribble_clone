@@ -66,8 +66,8 @@ function getRandomWords(round) {
   else if (round <3) list = words.medium;
   else list = words.hard;
 
-  const index = Math.floor(Math.random() * list.length);
-  return list[index];
+  const shuffled = [...list].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, 3)
 }
 
 export default { getRandomWords}

@@ -15,8 +15,14 @@ function Lobby() {
     socket.on("created successfully", (room) => {
       navigate(`/room/${room.id}`)
     })
+    socket.on("joinedRoom", (room) => {
+    navigate(`/room/${room.id}`)
+    })
 
-    return () => socket.off("created successfully")
+    return () => {
+      socket.off("created successfully")
+      socket.off("joinedRoom")
+    }
   }, [])
 
 

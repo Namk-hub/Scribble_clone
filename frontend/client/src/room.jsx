@@ -12,9 +12,17 @@ function Room() {
   const [room, setRoom] = useState(null)
 
   useEffect(() => {
+
     socket.emit("getRoomData", { roomId })
     socket.on("RoomData", (room) => setRoom(room))
-    return () => socket.off("RoomData")
+    socket.on("playerJoined", (players) => {
+    setRoom(prev => prev ? { ...prev, players } : prev)
+    })
+
+    return () => {
+      socket.off("RoomData")
+      socket.off("playerJoined")
+  }
   }, [])
 
   if (!room) return <div>Loading...</div>
@@ -43,7 +51,7 @@ function Room() {
               {room.players.map((player, i) => (
                 <div key={player.id} className="player-row">
                   <span className="player-name">{player.name}</span>
-                  {i === 0 && <span className="host-badge">HOST</span>}
+                  {player.id===room.hostId  && <span className="host-badge">HOST</span>}
                 </div>
               ))}
               {Array.from({ length: emptySlots }).map((_, i) => (

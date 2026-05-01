@@ -12,6 +12,7 @@ export default function initSocket(io) {
     socket.join(room.id)
     socket.emit("created successfully",room)
   });
+  
   //here socket.id doesnt exist due to refresh page effect
   socket.on("getRoomData",({roomId})=>{
     const room=roomManager.rooms.get(roomId)
@@ -20,20 +21,22 @@ export default function initSocket(io) {
   })
 
   socket.on("joinRoom",({roomId,playerName})=>{
-    const find_room=roomManager.joinRoom(roomId,playerName,socket.id)
-    if(find_room.error){
+    const result=roomManager.joinRoom(roomId,playerName,socket.id)
+    if(result.error){
       return socket.emit("error","wrong roomId")
     }
     socket.roomId=roomId
-    socket.join(find_room.id)
-    io.to(find_room.id).emit("message",`${playerName}has joined!` )
+    socket.join(roomId)
+    io.to(roomId).emit("playerJoined",result.players)
+    socket.emit("joinedRoom", result)
+    
   });
 
 
   socket.on("startGame",()=>{
     if (!socket.roomId) return
     const room=roomManager.rooms.get(socket.roomId)
-    if (socket.id===room.players[0].id){
+    if (socket.id===room.hostId){
       const returnvalue=roomManager.StartGame(socket.roomId)
       const list=returnvalue.list
       io.to(room.gameState.currentDrawer).emit("wordChoices",list)
@@ -72,20 +75,16 @@ export default function initSocket(io) {
   socket.on("disconnect",()=>{
     if (!socket.roomId) return
     const room=roomManager.rooms.get(socket.roomId)
-    if(!room){
-      return socket.emit("error","room no doesnt exist")
-    }
+    if(!room) return 
     const players=room.players
     const player=players.find(player => player.id===socket.id)
-    const find_room=roomManager.removePlayer(socket.roomId,socket.id)
-    if(find_room.error){
+    const result=roomManager.removePlayer(socket.roomId,socket.id)
+    if(result.error){
       return socket.emit("error","wrong roomId")
     }
-    if(find_room.wasDeleted){
-       return socket.emit("error","room no doesnt exist")
-    }
-  
-    io.to(find_room.id).emit("message",`${player.name} has disconnected!` )
+    if(result.wasDeleted) return 
+     io.to(result.find_room.id).emit("playerJoined", result.find_room.players)
+    io.to(result.find_room.id).emit("message",`${player?.name} has disconnected!` )
   });
 })
 }

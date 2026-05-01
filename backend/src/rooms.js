@@ -7,6 +7,7 @@ function createRoom(playerName,socketId){
   const room={
     id:Math.random().toString(36).substring(2, 8).toUpperCase(),
     players:[{id:socketId,name:playerName}],
+    hostId:socketId,
     gameState: {
     phase: 'waiting',
     currentDrawer: null,
@@ -21,27 +22,34 @@ function createRoom(playerName,socketId){
   return room
 }
 function joinRoom(roomID,playerName,socketId){
-  const find_room=rooms.get(roomID)
-  if(!find_room){
+  const room=rooms.get(roomID)
+  if(!room){
     return {error:"invalid roomID"}
   }
-  find_room.players.push({id:socketId,name:playerName})
-  find_room.gameState.scores[socketId]=0
-  return find_room;
+  room.players.push({id:socketId,name:playerName})
+  room.gameState.scores[socketId]=0
+  return room;
 }
 
 function removePlayer(roomId,socketId){
-  const find_room=rooms.get(roomId)
-  if(!find_room){
+  const room=rooms.get(roomId)
+  if(!room){
     return {error:"invalid roomID"}
   }
-  find_room.players=find_room.players.filter(player=> player.id!=socketId )
+  room.players=room.players.filter(player=> player.id!=socketId )
   
-  if (find_room.players.length === 0) {
+  if (room.players.length === 0) {
       rooms.delete(roomId)
       return { wasDeleted:true}
     }
-  return {find_room,wasDeleted:false}
+
+     // Make the next person in the array (index 0) the new host
+    if (room.hostId === socketId) {
+    room.hostId = room.players[0].id;
+    console.log(`New host assigned: ${room.players[0].name}`);
+  }
+
+  return {room,wasDeleted:false}
   }
 
   function StartGame(roomId){
@@ -62,7 +70,7 @@ function removePlayer(roomId,socketId){
     room.gameState.currentDrawer=room.gameState.drawerQueue.shift()
     room.gameState.round+=1
     room.gameState.currentWord=null
-    const list=words.getRandomWords()
+    const list=words.getRandomWords(room.gameState.round)
     return{room,list}
   }
 
