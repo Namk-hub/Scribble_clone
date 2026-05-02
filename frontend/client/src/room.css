@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .navbar-logo {
@@ -56,10 +56,11 @@
 .room-card {
   background: white;
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   display: flex;
-  width: 900px;
-  min-height: 500px;
+  width: 1000px;
+  min-height: 550px;
+  max-height: calc(100vh - 80px);
   overflow: hidden;
 }
 
@@ -69,7 +70,22 @@
   border-right: 2px solid #f0f0f0;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
+  min-height: 0;
+}
+
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 20px;
+  flex-shrink: 0;
 }
 
 .room-id-box {
@@ -77,6 +93,7 @@
   border-radius: 12px;
   padding: 16px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .room-id-box .label {
@@ -108,12 +125,31 @@
   font-size: 0.85rem;
 }
 
+.players-section {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 0 1 auto;
+  min-height: 0;
+  padding-right: 8px;
+}
+
+.players-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.players-section::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 99px;
+}
+
 .players-section .label {
   font-size: 0.75rem;
   font-weight: 700;
   color: #888;
   letter-spacing: 1px;
   margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .player-row {
@@ -214,4 +250,36 @@
 .tip-box p {
   color: #555;
   font-size: 0.9rem;
+}
+
+/* ── Responsive Design ── */
+@media (max-width: 950px) {
+  .room-container {
+    align-items: center;
+    padding: 20px 16px;
+  }
+  
+  .room-card {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    overflow: visible;
+  }
+  
+  .sidebar {
+    width: 100%;
+    border-right: none;
+  }
+  
+  /* Hide the redundant "Waiting for more players" section on mobile */
+  .main-area {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 16px;
+  }
 }

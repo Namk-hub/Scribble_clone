@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import socket from "./socket";
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Lobby from './Lobby'
-import Room from './Room'
+import Lobby from './lobby'
+import Room from './room'
+import DrawingRoom from './drawingRoom'
 
 function App() {
   useEffect(() => {
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route path="/room/:roomId" element={<Room />} />
+        <Route path="/game/:roomId" element={<DrawingRoom />} />
       </Routes>
     </BrowserRouter>
   )

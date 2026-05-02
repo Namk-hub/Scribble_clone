@@ -90,6 +90,9 @@ export default function initSocket(io) {
     }
   })
 
+  socket.on("clearCanvas", () => {
+    socket.to(socket.roomId).emit("clearCanvas")
+  })
   socket.on("disconnect",()=>{
     if (!socket.roomId) return
     const roomId = socket.roomId;

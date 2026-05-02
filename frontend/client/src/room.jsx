@@ -7,7 +7,7 @@ import { getOrCreateClientId } from './utils'
 const MAX_PLAYERS = 8
 
 function Room() {
-  
+
   const { roomId } = useParams()
   const navigate = useNavigate()
   const [room, setRoom] = useState(null)
@@ -16,12 +16,12 @@ function Room() {
   useEffect(() => {
     const savedName = sessionStorage.getItem("playerName") || "Anonymous";
     function onConnect() {
-      socket.emit("joinRoom", { roomId, playerName: savedName, clientId: myClientId})
+      socket.emit("joinRoom", { roomId, playerName: savedName, clientId: myClientId })
       socket.emit("getRoomData", { roomId })
-  }
+    }
 
-  // if already connected, run immediately
-  // if not, wait for connection first
+    // if already connected, run immediately
+    // if not, wait for connection first
     if (socket.connected) {
       onConnect()
     } else {
@@ -31,26 +31,25 @@ function Room() {
     socket.on("RoomData", (room) => setRoom(room))
     socket.on("playerUpdate", (updatedRoom) => setRoom(updatedRoom));
 
+    socket.on("turnStarted", () => {
+      navigate(`/game/${roomId}`)
+    })
+
     return () => {
       socket.off("connect", onConnect)
       socket.off("RoomData")
       socket.off("playerJoined")
-  }
+      socket.off("turnStarted")
+    }
   }, [])
 
   if (!room) return <div>Loading...</div>
 
-  const emptySlots = MAX_PLAYERS - room.players.length
   const isHost = myClientId === room.hostClientId;
 
   return (
-    
-        <div className="room-page">
-          <canvas 
-            width={800} 
-            height={500} 
-            style={{border: '1px solid black', background: 'white'}}
-          />
+
+    <div className="room-page">
       <nav className="navbar">
         <div className="navbar-logo">random<span>.io</span></div>
         <button className="leave-btn" onClick={() => navigate('/')}>⬅ Leave Room</button>
@@ -59,34 +58,38 @@ function Room() {
       <div className="room-container">
         <div className="room-card">
           <div className="sidebar">
-            <div className="room-id-box">
-              <p className="label">ROOM ID</p>
-              <h2>{roomId}</h2>
-              <p>Share this code with your friends!</p>
-              <button className="copy-btn" onClick={() => navigator.clipboard.writeText(roomId)}>⧉ Copy</button>
+            <div className="sidebar-top">
+              <div className="room-id-box">
+                <p className="label">ROOM ID</p>
+                <h2>{roomId}</h2>
+                <p>Share this code with your friends!</p>
+                <button className="copy-btn" onClick={() => navigator.clipboard.writeText(roomId)}>⧉ Copy</button>
+              </div>
+
+              <div className="players-section">
+                <p className="label">PLAYERS ({room.players.length}/{MAX_PLAYERS})</p>
+                {room.players.map((player, i) => (
+                  <div key={player.clientId} className="player-row">
+                    <span className="player-name">{player.name}</span>
+                    {player.id === room.hostId && <span className="host-badge">HOST</span>}
+                  </div>
+                ))}
+                {Array.from({ length: MAX_PLAYERS - room.players.length }).map((_, i) => (
+                  <div key={i} className="empty-slot">
+                    👤 Waiting for player...
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="players-section">
-              <p className="label">PLAYERS ({room.players.length}/{MAX_PLAYERS})</p>
-              {room.players.map((player, i) => (
-                <div key={player.clientId} className="player-row">
-                  <span className="player-name">{player.name}</span>
-                  {player.id===room.hostId  && <span className="host-badge">HOST</span>}
-                </div>
-              ))}
-              {Array.from({ length: emptySlots }).map((_, i) => (
-                <div key={i} className="empty-slot">
-                  👤 Waiting for player...
-                </div>
-              ))}
+            <div className="sidebar-bottom">
+              {isHost && (
+                <button className="start-btn" onClick={() => socket.emit("startGame")}>
+                  ▶ Start Game
+                </button>
+              )}
+              <p className="host-note">🔒 Only the host can start the game</p>
             </div>
-
-            {isHost && (
-            <button className="start-btn" onClick={() => socket.emit("startGame")}>
-              ▶ Start Game
-            </button>
-          )}
-          {<p className="host-note">🔒 Only the host can start the game</p>}
           </div>
 
           <div className="main-area">
