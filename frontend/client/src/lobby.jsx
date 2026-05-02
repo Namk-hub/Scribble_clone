@@ -2,7 +2,8 @@ import './Lobby.css'
 import { useEffect,useState } from "react";
 import socket from './socket'
 import { useNavigate } from 'react-router-dom'
-
+import { getOrCreateClientId } from './utils'
+const AVATARS = ['🐱', '🐶', '🐸', '🐼', '🐯', '🐨']
 
 
 function Lobby() {
@@ -10,6 +11,7 @@ function Lobby() {
   const [playerName, setPlayerName] = useState('')
   const [roomId, setRoomId] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState(0)
+ 
   
   useEffect(() => {
     socket.on("created successfully", (room) => {
@@ -27,23 +29,17 @@ function Lobby() {
 
 
   function handleCreate() {
-  let clientId = sessionStorage.getItem("clientId")
-  if (!clientId) {
-    clientId = Math.random().toString(36).substring(2, 10)
-    sessionStorage.setItem("clientId", clientId)
-  }
+  const clientId = getOrCreateClientId()
   sessionStorage.setItem("playerName", playerName)
+  sessionStorage.setItem("avatar", selectedAvatar)
   console.log("emitting createRoom", playerName)
   socket.emit("createRoom", { playerName,clientId})
 }
   
  function handleJoin() {
-  let clientId = sessionStorage.getItem("clientId")
-  if (!clientId) {
-    clientId = Math.random().toString(36).substring(2, 10)
-    sessionStorage.setItem("clientId", clientId)
-  }
+  const clientId = getOrCreateClientId()
   sessionStorage.setItem("playerName", playerName)
+  sessionStorage.setItem("avatar", selectedAvatar) 
   socket.emit("joinRoom", { roomId, playerName,clientId})
 }
 
@@ -55,11 +51,16 @@ function Lobby() {
         
         <input type="text" placeholder="enter your name" value={playerName} onChange={(e) => setPlayerName(e.target.value)}/>
         
-       <div className="avatar-picker">
-          <button>avatar1</button>
-          <button>avatar2</button>
-          <button>avatar3</button>
-          <button>avatar4</button>
+        <div className="avatar-picker">
+          {AVATARS.map((emoji, i) => (
+            <button
+              key={i}
+              className={`avatar-btn ${selectedAvatar === i ? 'selected' : ''}`}
+              onClick={() => setSelectedAvatar(i)}
+            >
+              {emoji}
+            </button>
+          ))}
         </div>
         
 

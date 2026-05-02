@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import socket from './socket'
 import './Room.css'
+import { getOrCreateClientId } from './utils'
 
 const MAX_PLAYERS = 8
 
@@ -10,17 +11,12 @@ function Room() {
   const { roomId } = useParams()
   const navigate = useNavigate()
   const [room, setRoom] = useState(null)
-  const myClientId = sessionStorage.getItem("clientId");
-  useEffect(() => {
-   let clientId = sessionStorage.getItem("clientId");
-    if (!clientId) {
-        clientId = Math.random().toString(36).substring(2, 10);
-        sessionStorage.setItem("clientId", clientId);
-    }
+  const myClientId = getOrCreateClientId()
 
+  useEffect(() => {
     const savedName = sessionStorage.getItem("playerName") || "Anonymous";
     function onConnect() {
-      socket.emit("joinRoom", { roomId, playerName: savedName,clientId})
+      socket.emit("joinRoom", { roomId, playerName: savedName, clientId: myClientId})
       socket.emit("getRoomData", { roomId })
   }
 
@@ -48,7 +44,13 @@ function Room() {
   const isHost = myClientId === room.hostClientId;
 
   return (
-    <div className="room-page">
+    
+        <div className="room-page">
+          <canvas 
+            width={800} 
+            height={500} 
+            style={{border: '1px solid black', background: 'white'}}
+          />
       <nav className="navbar">
         <div className="navbar-logo">random<span>.io</span></div>
         <button className="leave-btn" onClick={() => navigate('/')}>⬅ Leave Room</button>

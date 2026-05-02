@@ -5,9 +5,9 @@ export default function initSocket(io) {
 
   io.on("connection",(socket)=>{
   console.log("user connected successfully",socket.id)
-  socket.on("createRoom",({playerName, clientId})=>{
+  socket.on("createRoom",({playerName, clientId,avatar})=>{
      console.log("createRoom received", playerName)
-    const room=roomManager.createRoom(playerName,socket.id, clientId)
+    const room=roomManager.createRoom(playerName,socket.id, clientId,avatar)
     socket.roomId=room.id
     socket.join(room.id)
     socket.emit("created successfully",room)
@@ -20,8 +20,8 @@ export default function initSocket(io) {
     socket.emit("RoomData",room)
   })
 
-  socket.on("joinRoom",({roomId,playerName, clientId})=>{
-    const result=roomManager.joinRoom(roomId,playerName,socket.id, clientId)
+  socket.on("joinRoom",({roomId,playerName, clientId,avatar})=>{
+    const result=roomManager.joinRoom(roomId,playerName,socket.id, clientId,avatar)
     if(result.error){
       return socket.emit("error","wrong roomId")
     }

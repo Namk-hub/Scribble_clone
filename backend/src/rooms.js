@@ -3,10 +3,10 @@ import words from "./word.js"
 const rooms=new Map()
 
 
-function createRoom(playerName,socketId,clientId){
+function createRoom(playerName,socketId,clientId,avatar){
   const room={
     id:Math.random().toString(36).substring(2, 8).toUpperCase(),
-    players:[{id:socketId,clientId,name:playerName}],
+    players:[{id:socketId,clientId,name:playerName,avatar:avatar}],
     hostId:socketId,
     hostClientId: clientId,  
     gameState: {
@@ -22,7 +22,7 @@ function createRoom(playerName,socketId,clientId){
   rooms.set(room.id,room);
   return room
 }
-function joinRoom(roomID,playerName,socketId,clientId){
+function joinRoom(roomID,playerName,socketId,clientId,avatar){
   const room=rooms.get(roomID)
   if(!room){
     return {error:"invalid roomID"}
@@ -38,7 +38,7 @@ function joinRoom(roomID,playerName,socketId,clientId){
       room.hostId = socketId
     }
   } else {
-    room.players.push({ id: socketId, clientId, name: playerName })
+    room.players.push({ id: socketId, clientId, name: playerName,avatar:avatar})
     room.gameState.scores[clientId] = 0
   }
 
