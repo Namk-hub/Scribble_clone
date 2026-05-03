@@ -5,281 +5,425 @@
   padding: 0;
 }
 
-.room-page {
-  min-height: 100vh;
-  background: #e8f4ff;
-  display: flex;
-  flex-direction: column;
+body {
+  font-family: 'Segoe UI', sans-serif;
 }
 
+/* ── Loading ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #888;
+}
+
+/* ── Page ── */
+.room-page {
+  min-height: 100vh;
+  background: #eef2ff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Navbar ── */
 .navbar {
   background: white;
-  padding: 16px 32px;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 14px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
 }
 
 .navbar-logo {
   font-size: 1.6rem;
   font-weight: 900;
-  font-family: 'Schoolbell', cursive;
+  color: #111;
 }
 
 .navbar-logo span {
   color: #2563eb;
 }
 
+.nav-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-link {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #888;
+  padding-bottom: 4px;
+}
+
+.nav-link.active {
+  color: #2563eb;
+  border-bottom: 2px solid #2563eb;
+}
+
 .leave-btn {
-  padding: 8px 16px;
+  padding: 8px 18px;
   border: 2px solid #ef4444;
   color: #ef4444;
   background: white;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.15s;
 }
 
 .leave-btn:hover {
   background: #fef2f2;
 }
 
-.room-container {
+/* ── Background doodles ── */
+.doodles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.d {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.35;
+}
+
+.d1 { top: 30%;  left: 6%;  font-size: 2.4rem; transform: rotate(-20deg); }
+.d2 { top: 20%;  left: 10%; font-size: 1.8rem; }
+.d3 { top: 15%;  right: 8%; font-size: 2rem; }
+.d4 { bottom: 20%; left: 8%; font-size: 1.6rem; }
+.d5 { bottom: 15%; right: 10%; font-size: 2rem; }
+.d6 { top: 55%;  right: 6%; font-size: 1.8rem; }
+
+/* ── Main layout ── */
+.room-main {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 32px 20px;
+  position: relative;
+  z-index: 1;
 }
 
+/* ── Card ── */
 .room-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-  display: flex;
-  width: 1000px;
-  min-height: 550px;
-  max-height: calc(100vh - 80px);
-  overflow: hidden;
-}
-
-.sidebar {
-  width: 320px;
-  padding: 28px;
-  border-right: 2px solid #f0f0f0;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.09);
+  width: 100%;
+  max-width: 880px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 28px;
 }
 
-.sidebar-top {
+/* ── Card top: Room ID + count ── */
+.card-top {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-height: 0;
+  align-items: center;
+  gap: 32px;
 }
 
-.sidebar-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 20px;
-  flex-shrink: 0;
+.room-id-section {
+  flex: 1;
 }
 
-.room-id-box {
-  background: #f5f5f5;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.room-id-box .label {
-  font-size: 0.75rem;
-  font-weight: 700;
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
   color: #888;
-  letter-spacing: 1px;
+  margin-bottom: 4px;
 }
 
-.room-id-box h2 {
-  font-size: 2rem;
+.section-label.blue {
   color: #2563eb;
-  font-weight: 900;
-  margin: 6px 0;
+  margin-bottom: 14px;
 }
 
-.room-id-box p {
-  font-size: 0.8rem;
-  color: #aaa;
-  margin-bottom: 8px;
+.room-id-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-id-text {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: #2563eb;
+  letter-spacing: 2px;
 }
 
 .copy-btn {
-  padding: 6px 16px;
-  border: 1px solid #ddd;
+  background: none;
+  border: 1.5px solid #ddd;
   border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 1.1rem;
   cursor: pointer;
-  background: white;
+  transition: background 0.15s;
+}
+
+.copy-btn:hover {
+  background: #f3f4f6;
+}
+
+.room-sub {
   font-size: 0.85rem;
+  color: #aaa;
+  margin-top: 4px;
 }
 
-.players-section {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  flex: 0 1 auto;
-  min-height: 0;
-  padding-right: 8px;
-}
-
-.players-section::-webkit-scrollbar {
-  width: 4px;
-}
-
-.players-section::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 99px;
-}
-
-.players-section .label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #888;
-  letter-spacing: 1px;
-  margin-bottom: 10px;
+.card-divider {
+  width: 1.5px;
+  height: 70px;
+  background: #e5e7eb;
   flex-shrink: 0;
 }
 
-.player-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  background: #f5f5f5;
-  border-radius: 10px;
-  margin-bottom: 8px;
+.count-section {
+  flex: 1;
 }
 
-.player-name {
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.host-badge {
-  background: #2563eb;
-  color: white;
-  font-size: 0.7rem;
-  padding: 2px 10px;
-  border-radius: 6px;
-  font-weight: 700;
-}
-
-.empty-slot {
+.count-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border: 2px dashed #ddd;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  color: #bbb;
-  font-size: 0.85rem;
+  margin-bottom: 6px;
 }
 
-.start-btn {
-  width: 100%;
-  padding: 14px;
-  background: #16a34a;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: auto;
+.count-icon {
+  font-size: 1.4rem;
 }
 
-.start-btn:hover {
-  background: #15803d;
-}
-
-.host-note {
-  text-align: center;
-  color: #aaa;
-  font-size: 0.78rem;
-}
-
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 40px;
-}
-
-.main-area h2 {
-  font-family: 'Schoolbell', cursive;
-  font-size: 2rem;
+.count-text {
+  font-size: 1.1rem;
   color: #333;
 }
 
-.main-area p {
-  color: #888;
+.count-text strong {
+  color: #111;
+}
+
+.count-sub {
+  font-size: 0.85rem;
+  color: #aaa;
+  padding-left: 2px;
+}
+
+/* ── Players grid ── */
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding-top: 10px;
+}
+
+.host-badge {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2563eb;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.empty-avatar {
+  background: #f3f4f6;
+  box-shadow: none;
+  border: 2px dashed #d1d5db;
+  font-size: 1.6rem;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.player-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #333;
   text-align: center;
-  font-size: 1rem;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-name {
+  color: #bbb;
+  font-weight: 500;
+}
+
+/* ── Card bottom: Tip + Start ── */
+.card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .tip-box {
+  flex: 1;
   background: #f0f7ff;
   border-radius: 14px;
-  padding: 20px 24px;
-  width: 100%;
-  max-width: 340px;
+  padding: 18px 20px;
 }
 
-.tip-box .tip-title {
-  font-weight: 700;
+.tip-title {
+  font-weight: 800;
   color: #2563eb;
-  margin-bottom: 8px;
-}
-
-.tip-box p {
-  color: #555;
+  margin-bottom: 6px;
   font-size: 0.9rem;
 }
 
-/* ── Responsive Design ── */
-@media (max-width: 950px) {
-  .room-container {
-    align-items: center;
-    padding: 20px 16px;
-  }
-  
-  .room-card {
-    display: block;
-    width: 100%;
-    max-width: 600px;
-    height: auto;
-    overflow: visible;
-  }
-  
-  .sidebar {
-    width: 100%;
-    border-right: none;
-  }
-  
-  /* Hide the redundant "Waiting for more players" section on mobile */
-  .main-area {
-    display: none;
-  }
+.tip-text {
+  color: #555;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
-@media (max-width: 768px) {
+.start-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.start-btn {
+  padding: 16px 48px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.start-btn:hover:not(:disabled) {
+  background: #15803d;
+  transform: scale(1.02);
+}
+
+.start-btn.disabled {
+  background: #86efac;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.host-note {
+  font-size: 0.78rem;
+  color: #aaa;
+  text-align: center;
+}
+
+/* ════════════════════════════════
+   MOBILE  (≤ 700px)
+   ════════════════════════════════ */
+@media (max-width: 700px) {
   .navbar {
-    padding: 16px;
+    padding: 14px 16px;
+  }
+
+  .nav-center {
+    display: none;
+  }
+
+  .room-main {
+    padding: 16px 12px;
+    justify-content: flex-start;
+  }
+
+  .room-card {
+    padding: 20px 16px;
+    gap: 20px;
+    border-radius: 18px;
+  }
+
+  .card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .card-divider {
+    display: none;
+  }
+
+  .room-id-text {
+    font-size: 1.8rem;
+  }
+
+  /* 4 columns on mobile */
+  .players-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.7rem;
+    border-radius: 14px;
+  }
+
+  .card-bottom {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .tip-box {
+    width: 100%;
+  }
+
+  .start-section {
+    width: 100%;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1rem;
   }
 }

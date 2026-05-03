@@ -3,7 +3,7 @@ import { useEffect,useState } from "react";
 import socket from './socket'
 import { useNavigate } from 'react-router-dom'
 import { getOrCreateClientId } from './utils'
-const AVATARS = ['🐱', '🐶', '🐸', '🐼', '🐯', '🐨']
+import { AVATARS } from './avatars'
 
 
 function Lobby() {
@@ -33,14 +33,14 @@ function Lobby() {
   sessionStorage.setItem("playerName", playerName)
   sessionStorage.setItem("avatar", selectedAvatar)
   console.log("emitting createRoom", playerName)
-  socket.emit("createRoom", { playerName,clientId})
+  socket.emit("createRoom", { playerName,clientId,avatar: selectedAvatar })
 }
   
  function handleJoin() {
   const clientId = getOrCreateClientId()
   sessionStorage.setItem("playerName", playerName)
   sessionStorage.setItem("avatar", selectedAvatar) 
-  socket.emit("joinRoom", { roomId, playerName,clientId})
+  socket.emit("joinRoom", { roomId, playerName,clientId,avatar: selectedAvatar })
 }
 
   return (

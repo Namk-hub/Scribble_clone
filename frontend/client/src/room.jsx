@@ -6,22 +6,23 @@ import { getOrCreateClientId } from './utils'
 
 const MAX_PLAYERS = 8
 
-function Room() {
+import { AVATARS, AVATAR_COLORS } from './avatars'
 
+function Room() {
   const { roomId } = useParams()
   const navigate = useNavigate()
   const [room, setRoom] = useState(null)
+  const [copied, setCopied] = useState(false)
   const myClientId = getOrCreateClientId()
 
   useEffect(() => {
-    const savedName = sessionStorage.getItem("playerName") || "Anonymous";
+    const savedName = sessionStorage.getItem("playerName") || "Anonymous"
+    const savedAvatar=sessionStorage.getItem("avatar") || '😊'
     function onConnect() {
-      socket.emit("joinRoom", { roomId, playerName: savedName, clientId: myClientId })
+      socket.emit("joinRoom", { roomId, playerName: savedName, clientId: myClientId, avatar: Number(sessionStorage.getItem("avatar") || 0) })
       socket.emit("getRoomData", { roomId })
     }
 
-    // if already connected, run immediately
-    // if not, wait for connection first
     if (socket.connected) {
       onConnect()
     } else {
@@ -29,11 +30,8 @@ function Room() {
     }
 
     socket.on("RoomData", (room) => setRoom(room))
-    socket.on("playerUpdate", (updatedRoom) => setRoom(updatedRoom));
-
-    socket.on("turnStarted", () => {
-      navigate(`/game/${roomId}`)
-    })
+    socket.on("playerUpdate", (updatedRoom) => setRoom(updatedRoom))
+    socket.on("turnStarted", () => navigate(`/game/${roomId}`))
 
     return () => {
       socket.off("connect", onConnect)
@@ -43,48 +41,117 @@ function Room() {
     }
   }, [])
 
-  if (!room) return <div>Loading...</div>
+  function handleCopy() {
+    navigator.clipboard.writeText(roomId)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
-  const isHost = myClientId === room.hostClientId;
+  if (!room) return <div className="loading">Connecting...</div>
+
+  const isHost = myClientId === room.hostClientId
 
   return (
-
     <div className="room-page">
+
+      {/* Navbar */}
       <nav className="navbar">
-        <div className="navbar-logo">random<span>.io</span></div>
-        <button className="leave-btn" onClick={() => navigate('/')}>⬅ Leave Room</button>
+        <div className="navbar-logo">
+          random<span>.io</span>
+        </div>
+        <div className="nav-center">
+          <span className="nav-link active">Lobby</span>
+        </div>
+        <button className="leave-btn" onClick={() => navigate('/')}>
+          ← Leave Room
+        </button>
       </nav>
 
-      <div className="room-container">
-        <div className="room-card">
-          <div className="sidebar">
-            <div className="sidebar-top">
-              <div className="room-id-box">
-                <p className="label">ROOM ID</p>
-                <h2>{roomId}</h2>
-                <p>Share this code with your friends!</p>
-                <button className="copy-btn" onClick={() => navigator.clipboard.writeText(roomId)}>⧉ Copy</button>
-              </div>
+      {/* Background doodles */}
+      <div className="doodles" aria-hidden="true">
+        <span className="d d1">✏️</span>
+        <span className="d d2">⭐</span>
+        <span className="d d3">👑</span>
+        <span className="d d4">💙</span>
+        <span className="d d5">💚</span>
+        <span className="d d6">🩷</span>
+      </div>
 
-              <div className="players-section">
-                <p className="label">PLAYERS ({room.players.length}/{MAX_PLAYERS})</p>
-                {room.players.map((player, i) => (
-                  <div key={player.clientId} className="player-row">
-                    <span className="player-name">{player.name}</span>
-                    {player.id === room.hostId && <span className="host-badge">HOST</span>}
-                  </div>
-                ))}
-                {Array.from({ length: MAX_PLAYERS - room.players.length }).map((_, i) => (
-                  <div key={i} className="empty-slot">
-                    👤 Waiting for player...
-                  </div>
-                ))}
+      {/* Main */}
+      <main className="room-main">
+        <div className="room-card">
+
+          {/* Top: Room ID + count */}
+          <div className="card-top">
+            <div className="room-id-section">
+              <p className="section-label">ROOM ID</p>
+              <div className="room-id-row">
+                <h1 className="room-id-text">{roomId}</h1>
+                <button className="copy-btn" onClick={handleCopy}>
+                  {copied ? '✅' : '📋'}
+                </button>
               </div>
+              <p className="room-sub">Share this code with your friends!</p>
             </div>
 
-            <div className="sidebar-bottom">
-              {isHost && (
+            <div className="card-divider" />
+
+            <div className="count-section">
+              <div className="count-row">
+                <span className="count-icon">👥</span>
+                <span className="count-text">
+                  <strong>{room.players.length}</strong> / {MAX_PLAYERS} players joined
+                </span>
+              </div>
+              <p className="count-sub">Game starts when the host clicks Start.</p>
+            </div>
+          </div>
+
+          {/* Players grid */}
+          <div className="players-section">
+            <p className="section-label blue">PLAYERS</p>
+            <div className="players-grid">
+              {Array.from({ length: MAX_PLAYERS }).map((_, i) => {
+                const player = room.players[i]
+                if (player) {
+                  return (
+                    <div key={player.clientId} className="player-card">
+                      {player.clientId === room.hostClientId && (
+                        <span className="host-badge">HOST</span>
+                      )}
+                     <div className="avatar" style={{ 
+                      background: AVATAR_COLORS[player.avatar] }}>
+                        {AVATARS[player.avatar]}
+                      </div>
+                      <p className="player-name">{player.name}</p>
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div key={i} className="player-card empty">
+                      <div className="avatar empty-avatar">👤</div>
+                      <p className="player-name empty-name">Waiting...</p>
+                    </div>
+                  )
+                }
+              })}
+            </div>
+          </div>
+
+          {/* Bottom: Tip + Start */}
+          <div className="card-bottom">
+            <div className="tip-box">
+              <p className="tip-title">💡 TIP</p>
+              <p className="tip-text">More players = more fun! Invite your friends and start drawing.</p>
+            </div>
+
+            <div className="start-section">
+              {isHost ? (
                 <button className="start-btn" onClick={() => socket.emit("startGame")}>
+                  ▶ Start Game
+                </button>
+              ) : (
+                <button className="start-btn disabled" disabled>
                   ▶ Start Game
                 </button>
               )}
@@ -92,16 +159,8 @@ function Room() {
             </div>
           </div>
 
-          <div className="main-area">
-            <h2>Waiting for more players...</h2>
-            <p>The game will start once the host clicks Start Game.</p>
-            <div className="tip-box">
-              <p className="tip-title">💡 TIP</p>
-              <p>More players = more fun!<br />Invite your friends and start drawing.</p>
-            </div>
-          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
