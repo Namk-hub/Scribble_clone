@@ -11,6 +11,7 @@ function createRoom(playerName,socketId,clientId,avatar){
     hostClientId: clientId,  
     gameState: {
     phase: 'waiting',
+    wordChoices:[],
     currentDrawer: null,
     currentWord: null,
     round: 0,
@@ -23,7 +24,7 @@ function createRoom(playerName,socketId,clientId,avatar){
   return room
 }
 function joinRoom(roomID,playerName,socketId,clientId,avatar){
-  const room=rooms.get(roomID)
+  const room=rooms.get(roomID.toUpperCase())
   if(!room){
     return {error:"invalid roomID"}
   }
@@ -87,6 +88,7 @@ function removePlayer(roomId,socketId,clientId){
     return {error:"invalid roomID"}
     }
     // RESET round-specific data
+    
     room.gameState.correctGuessers = [];
     room.gameState.currentWord = null;
 
@@ -100,6 +102,7 @@ function removePlayer(roomId,socketId,clientId){
     
     
     const list=words.getRandomWords(room.gameState.round)
+    room.gameState.wordChoices = list
     return{room,list}
   }
 

@@ -28,16 +28,24 @@ function DrawingRoom() {
 
   // ─── Socket Setup ───────────────────────────────────────────────
   useEffect(() => {
+    console.log("DrawingRoom mounted!")
+    console.log("socket connected?", socket.connected)
     const savedName = sessionStorage.getItem('playerName') || 'Anonymous'
     const savedAvatar = sessionStorage.getItem('avatar') || '0'
 
     function onConnect() {
+      console.log("onConnect fired!")
       socket.emit('joinRoom', { roomId, playerName: savedName, clientId: myClientId, avatar: savedAvatar })
       socket.emit('getRoomData', { roomId })
     }
 
-    if (socket.connected) onConnect()
-    else socket.on('connect', onConnect)
+    if (socket.connected) {
+      console.log("Socket already connected, calling onConnect")
+      onConnect()
+    } else {
+      console.log("Socket not connected, waiting for connect event")
+      socket.on('connect', onConnect)
+    }
 
     socket.on('RoomData', (room) => { setRoom(room); setPhase(room.gameState.phase) })
     socket.on('playerUpdate', (room) => setRoom(room))
@@ -50,6 +58,10 @@ function DrawingRoom() {
     socket.on('drawingStarted', () => {
       setPhase('drawing')
       setWordChoices([])
+    })
+
+    socket.on('wordPicked', (word) => {
+      setCurrentWord(word)
     })
 
     socket.on('turnStarted', (msg) => {
@@ -76,17 +88,23 @@ function DrawingRoom() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
     })
 
+    socket.on('error', (err) => {
+      console.error("Socket error:", err)
+    })
+
     return () => {
       socket.off('connect', onConnect)
       socket.off('RoomData')
       socket.off('playerUpdate')
       socket.off('wordChoices')
       socket.off('drawingStarted')
+      socket.off('wordPicked')
       socket.off('turnStarted')
       socket.off('correctGuess')
       socket.off('message')
       socket.off('draw')
       socket.off('clearCanvas')
+      socket.off('error')
     }
   }, [])
 
@@ -143,7 +161,6 @@ function DrawingRoom() {
     isDrawing.current = false
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────
   function addMessage(msg) {
     setMessages(prev => [...prev.slice(-50), { ...msg, id: Date.now() + Math.random() }])
   }
@@ -166,8 +183,12 @@ function DrawingRoom() {
 
   const isDrawer = myClientId === room.gameState.currentDrawer
   const drawerPlayer = room.players.find(p => p.clientId === room.gameState.currentDrawer)
-  const wordHint = currentWord
-    ? (isDrawer ? currentWord : currentWord.split('').map((c, i) => c === ' ' ? ' ' : '_').join(' '))
+  
+  // Use local state currentWord (set when picking) or fallback to room state
+  const theWord = currentWord || room.gameState.currentWord
+  
+  const wordHint = theWord
+    ? (isDrawer ? theWord : theWord.split('').map((c, i) => c === ' ' ? ' ' : '_').join(' '))
     : null
 
   return (
@@ -195,10 +216,10 @@ function DrawingRoom() {
         <div className="word-info">
           <span className="word-label">Word</span>
           <div className="word-hint">
-            {wordHint || (phase === 'drawing' ? '_ _ _ _ _' : '---')}
+            {wordHint || (phase === 'drawing' ? '... Loading word ...' : '---')}
           </div>
-          {currentWord && (
-            <span className="letter-count">{currentWord.length} letters</span>
+          {theWord && (
+            <span className="letter-count">{theWord.length} letters</span>
           )}
         </div>
       </div>

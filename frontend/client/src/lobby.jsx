@@ -21,9 +21,14 @@ function Lobby() {
     navigate(`/room/${room.id}`)
     })
 
+    socket.on("error", (msg) => {
+      alert("Error: " + msg)
+    })
+
     return () => {
       socket.off("created successfully")
       socket.off("joinedRoom")
+      socket.off("error")
     }
   }, [])
 
@@ -36,12 +41,17 @@ function Lobby() {
   socket.emit("createRoom", { playerName,clientId,avatar: selectedAvatar })
 }
   
- function handleJoin() {
-  const clientId = getOrCreateClientId()
-  sessionStorage.setItem("playerName", playerName)
-  sessionStorage.setItem("avatar", selectedAvatar) 
-  socket.emit("joinRoom", { roomId, playerName,clientId,avatar: selectedAvatar })
-}
+  function handleJoin() {
+    if (!playerName.trim() || !roomId.trim()) {
+      alert("Please enter both a name and a room ID")
+      return
+    }
+    const clientId = getOrCreateClientId()
+    sessionStorage.setItem("playerName", playerName)
+    sessionStorage.setItem("avatar", selectedAvatar) 
+    console.log("Emitting joinRoom:", { roomId, playerName })
+    socket.emit("joinRoom", { roomId, playerName, clientId, avatar: selectedAvatar })
+  }
 
   return (
     <div className="lobby">

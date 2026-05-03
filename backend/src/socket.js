@@ -15,22 +15,33 @@ export default function initSocket(io) {
 
   //here socket.id doesnt exist due to refresh page effect
   socket.on("getRoomData",({roomId})=>{
-    const room=roomManager.rooms.get(roomId)
+    const room=roomManager.rooms.get(roomId.toUpperCase())
     if (!room) return socket.emit("error", "room not found")
     socket.emit("RoomData",room)
   })
 
   socket.on("joinRoom",({roomId,playerName, clientId,avatar})=>{
-    const result=roomManager.joinRoom(roomId,playerName,socket.id, clientId,avatar)
-    if(result.error){
+    console.log(`joinRoom attempt: roomId=${roomId}, name=${playerName}, clientId=${clientId}`)
+    const room=roomManager.joinRoom(roomId,playerName,socket.id, clientId,avatar)
+    if(room.error){
+      console.log(`joinRoom failed: ${room.error} for roomId: ${roomId}`)
       return socket.emit("error","wrong roomId")
     }
     socket.roomId=roomId
     socket.join(roomId)
-    io.to(roomId).emit("playerUpdate", result);
+    io.to(roomId).emit("playerUpdate", room);
     
-    socket.emit("joinedRoom", result)
-    
+    socket.emit("joinedRoom", room)
+    if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === clientId) {
+      socket.emit("wordChoices", room.gameState.wordChoices)
+    }
+    if (room.gameState.phase === 'drawing' && room.gameState.currentDrawer === clientId) {
+      socket.emit("wordPicked", room.gameState.currentWord)
+    }
+    console.log("phase:", room.gameState.phase)
+      console.log("currentDrawer:", room.gameState.currentDrawer)
+      console.log("clientId joining:", clientId)
+      console.log("wordChoices:", room.gameState.wordChoices)
   });
 
 
@@ -55,6 +66,7 @@ export default function initSocket(io) {
     room.gameState.currentWord=drawerWord
     room.gameState.phase="drawing"
     io.to(room.id).emit("drawingStarted","drawing has beginnn")
+    io.to(room.id).emit("playerUpdate", room)
   })
 
   socket.on("guess",({guess})=>{
@@ -88,6 +100,10 @@ export default function initSocket(io) {
       io.to(updatedRoom.id).emit("turnStarted", `${updatedRoom.gameState.currentDrawer} is picking!`)
     
     }
+  })
+
+  socket.on("draw",(data)=>{
+    socket.to(socket.roomId).emit("draw",data)
   })
 
   socket.on("clearCanvas", () => {
