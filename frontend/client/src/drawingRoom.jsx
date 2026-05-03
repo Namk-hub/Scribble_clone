@@ -48,7 +48,10 @@ function DrawingRoom() {
     }
 
     socket.on('RoomData', (room) => { setRoom(room); setPhase(room.gameState.phase) })
-    socket.on('playerUpdate', (room) => setRoom(room))
+    socket.on('playerUpdate', (room) => { 
+      setRoom(room); 
+      if (room.gameState.phase) setPhase(room.gameState.phase) 
+    })
 
     socket.on('wordChoices', (list) => {
       setWordChoices(list)
@@ -66,6 +69,9 @@ function DrawingRoom() {
 
     socket.on('turnStarted', (msg) => {
       addMessage({ type: 'system', text: msg })
+      setPhase('picking')
+      setCurrentWord(null)
+      setWordChoices([])
     })
 
     socket.on('correctGuess', ({ clientId, points }) => {
@@ -183,10 +189,10 @@ function DrawingRoom() {
 
   const isDrawer = myClientId === room.gameState.currentDrawer
   const drawerPlayer = room.players.find(p => p.clientId === room.gameState.currentDrawer)
-  
+
   // Use local state currentWord (set when picking) or fallback to room state
   const theWord = currentWord || room.gameState.currentWord
-  
+
   const wordHint = theWord
     ? (isDrawer ? theWord : theWord.split('').map((c, i) => c === ' ' ? ' ' : '_').join(' '))
     : null

@@ -1,5 +1,5 @@
 import './Lobby.css'
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import socket from './socket'
 import { useNavigate } from 'react-router-dom'
 import { getOrCreateClientId } from './utils'
@@ -11,14 +11,14 @@ function Lobby() {
   const [playerName, setPlayerName] = useState('')
   const [roomId, setRoomId] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState(0)
- 
-  
+
+
   useEffect(() => {
     socket.on("created successfully", (room) => {
       navigate(`/room/${room.id}`)
     })
     socket.on("joinedRoom", (room) => {
-    navigate(`/room/${room.id}`)
+      navigate(`/room/${room.id}`)
     })
 
     socket.on("error", (msg) => {
@@ -34,21 +34,17 @@ function Lobby() {
 
 
   function handleCreate() {
-  const clientId = getOrCreateClientId()
-  sessionStorage.setItem("playerName", playerName)
-  sessionStorage.setItem("avatar", selectedAvatar)
-  console.log("emitting createRoom", playerName)
-  socket.emit("createRoom", { playerName,clientId,avatar: selectedAvatar })
-}
-  
-  function handleJoin() {
-    if (!playerName.trim() || !roomId.trim()) {
-      alert("Please enter both a name and a room ID")
-      return
-    }
     const clientId = getOrCreateClientId()
     sessionStorage.setItem("playerName", playerName)
-    sessionStorage.setItem("avatar", selectedAvatar) 
+    sessionStorage.setItem("avatar", selectedAvatar)
+    console.log("emitting createRoom", playerName)
+    socket.emit("createRoom", { playerName, clientId, avatar: selectedAvatar })
+  }
+
+  function handleJoin() {
+    const clientId = getOrCreateClientId()
+    sessionStorage.setItem("playerName", playerName)
+    sessionStorage.setItem("avatar", selectedAvatar)
     console.log("Emitting joinRoom:", { roomId, playerName })
     socket.emit("joinRoom", { roomId, playerName, clientId, avatar: selectedAvatar })
   }
@@ -58,9 +54,9 @@ function Lobby() {
       <div className="card">
         <h1>Enter the Lobby</h1>
         <p>Ready to unleash your inner artist?</p>
-        
-        <input type="text" placeholder="enter your name" value={playerName} onChange={(e) => setPlayerName(e.target.value)}/>
-        
+
+        <input type="text" placeholder="enter your name" value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
+
         <div className="avatar-picker">
           {AVATARS.map((emoji, i) => (
             <button
@@ -72,14 +68,14 @@ function Lobby() {
             </button>
           ))}
         </div>
-        
+
 
         <div className="or">OR</div>
 
         <div className="bottom-section">
           <div className="join-room">
             <p>Got a room code?</p>
-            <input type="text" placeholder="Enter Room ID" value={roomId} onChange={(e) => setRoomId(e.target.value)}/>
+            <input type="text" placeholder="Enter Room ID" value={roomId} onChange={(e) => setRoomId(e.target.value)} />
             <button className="join-btn" onClick={handleJoin}>Join Room →</button>
           </div>
 
