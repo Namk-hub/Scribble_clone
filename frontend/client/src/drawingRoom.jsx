@@ -36,7 +36,7 @@ function DrawingRoom() {
     function onConnect() {
       console.log("onConnect fired!")
       socket.emit('joinRoom', { roomId, playerName: savedName, clientId: myClientId, avatar: savedAvatar })
-      socket.emit('getRoomData', { roomId })
+      socket.emit('getRoomData', { roomId, clientId: myClientId })
     }
 
     if (socket.connected) {
@@ -47,10 +47,16 @@ function DrawingRoom() {
       socket.on('connect', onConnect)
     }
 
-    socket.on('RoomData', (room) => { setRoom(room); setPhase(room.gameState.phase) })
-    socket.on('playerUpdate', (room) => { 
-      setRoom(room); 
-      if (room.gameState.phase) setPhase(room.gameState.phase) 
+    socket.on('RoomData', (room) => {
+      setRoom(room);
+      setPhase(room.gameState.phase);
+      if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === myClientId) {
+        setWordChoices(room.gameState.wordChoices || [])
+      }
+    })
+    socket.on('playerUpdate', (room) => {
+      setRoom(room);
+      if (room.gameState.phase) setPhase(room.gameState.phase)
     })
 
     socket.on('wordChoices', (list) => {

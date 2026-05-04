@@ -14,12 +14,17 @@ export default function initSocket(io) {
     });
 
     //here socket.id doesnt exist due to refresh page effect
-    socket.on("getRoomData", ({ roomId }) => {
+    socket.on("getRoomData", ({ roomId, clientId }) => {
       const room = roomManager.rooms.get(roomId.toUpperCase())
       if (!room) return socket.emit("error", "room not found")
       socket.roomId = room.id // Ensure socket knows its room ID
       socket.join(room.id)
       socket.emit("RoomData", room)
+
+      // If they are the drawer and it's picking phase, send them the choices
+      if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === clientId) {
+        socket.emit("wordChoices", room.gameState.wordChoices)
+      }
     })
 
     socket.on("joinRoom", ({ roomId, playerName, clientId, avatar }) => {
@@ -55,12 +60,12 @@ export default function initSocket(io) {
         const list = returnvalue.list
         const drawer = room.players.find(p => p.clientId === room.gameState.currentDrawer);
         if (drawer) {
+          io.to(room.id).emit("playerUpdate", room)
+          io.to(room.id).emit("turnStarted", `${drawer.name} is picking!`)
           io.to(drawer.id).emit("wordChoices", list);
         }
-        io.to(room.id).emit("playerUpdate", room)
-        io.to(room.id).emit("turnStarted", `${room.gameState.currentDrawer} is picking!`)
-      }
 
+      }
     });
 
     socket.on("pickWord", (drawerWord) => {
@@ -87,21 +92,20 @@ export default function initSocket(io) {
 
       const result = roomManager.submitGuess(socket.roomId, guess, socket.id)
       if (!result.correct) return
-      io.to(room.id).emit("correctGuess", { clientId: result.clientId, points: result.points })
+      io.to(room.id).emit("correctGuess", { clientId: player.clientId, points: result.points })
 
       //clearing timerr
       if (result.turnOver) {
         const { room: updatedRoom, list } = roomManager.nextTurn(socket.roomId)
 
-        // Find the new drawer's socket
-        const nextDrawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
-
-        if (nextDrawer) {
-          io.to(nextDrawer.id).emit("wordChoices", list);
-        }
+        const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
 
         io.to(updatedRoom.id).emit("playerUpdate", updatedRoom)
-        io.to(updatedRoom.id).emit("turnStarted", `${updatedRoom.gameState.currentDrawer} is picking!`)
+        io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`)
+
+        if (drawer) {
+          io.to(drawer.id).emit("wordChoices", list);
+        }
 
       }
     })
