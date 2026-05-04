@@ -92,23 +92,24 @@ export default function initSocket(io) {
       if (room.gameState.correctGuessers.includes(player.clientId)) return;
 
       const result = roomManager.submitGuess(socket.roomId, guess, socket.id)
-      if (!result.correct) return
-      io.to(room.id).emit("correctGuess", { clientId: player.clientId, points: result.points })
-
-      //clearing timerr
-      if (result.turnOver) {
-        const { room: updatedRoom, list } = roomManager.nextTurn(socket.roomId)
-
-        const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
-
-        io.to(updatedRoom.id).emit("playerUpdate", updatedRoom)
-        io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`)
-
-        if (drawer) {
-          io.to(drawer.id).emit("wordChoices", list);
+      
+      if (result.correct) {
+        io.to(room.id).emit("correctGuess", { clientId: player.clientId, points: result.points })
+        io.to(room.id).emit("message", { type: 'system', text: `${player.name} guessed the word!` })
+        
+        if (result.turnOver) {
+          const { room: updatedRoom, list } = roomManager.nextTurn(socket.roomId)
+          const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
+          io.to(updatedRoom.id).emit("playerUpdate", updatedRoom)
+          io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`)
+          if (drawer) {
+            io.to(drawer.id).emit("wordChoices", list);
+          }
+          io.to(updatedRoom.id).emit("clearCanvas");
         }
-        io.to(updatedRoom.id).emit("clearCanvas");
-
+      } else {
+        // Broadcast incorrect guess as a chat message
+        io.to(room.id).emit("message", { type: 'chat', text: guess, playerName: player.name })
       }
     })
 

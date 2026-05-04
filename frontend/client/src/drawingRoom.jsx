@@ -85,7 +85,15 @@ function DrawingRoom() {
     })
 
     socket.on('message', (msg) => {
-      addMessage({ type: 'system', text: msg })
+      if (typeof msg === 'string') {
+        addMessage({ type: 'system', text: msg })
+      } else {
+        // msg is { type, text, playerName }
+        const isMe = msg.playerName === savedName;
+        const type = isMe ? 'mine' : (msg.type || 'system');
+        const text = msg.playerName ? `${msg.playerName}: ${msg.text}` : msg.text;
+        addMessage({ type, text })
+      }
     })
 
     // Receive drawing from others
@@ -181,7 +189,6 @@ function DrawingRoom() {
     e.preventDefault()
     if (!guess.trim()) return
     socket.emit('guess', { guess: guess.trim() })
-    addMessage({ type: 'mine', text: guess.trim() })
     setGuess('')
   }
 
@@ -198,6 +205,7 @@ function DrawingRoom() {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
   }
+
 
   if (!room) return <div className="loading-screen">Connecting...</div>
 
