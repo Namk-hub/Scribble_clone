@@ -63,6 +63,7 @@ export default function initSocket(io) {
           io.to(room.id).emit("playerUpdate", room)
           io.to(room.id).emit("turnStarted", `${drawer.name} is picking!`)
           io.to(drawer.id).emit("wordChoices", list);
+          io.to(room.id).emit("clearCanvas");
         }
 
       }
@@ -106,6 +107,7 @@ export default function initSocket(io) {
         if (drawer) {
           io.to(drawer.id).emit("wordChoices", list);
         }
+        io.to(updatedRoom.id).emit("clearCanvas");
 
       }
     })

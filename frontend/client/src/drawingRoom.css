@@ -464,6 +464,27 @@ body {
   transform: scale(1.1);
 }
 
+.clear-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+  transform: scale(1.1);
+}
+
 /* ── Chat ── */
 .chat-sidebar {
   grid-column: 2;

@@ -191,6 +191,14 @@ function DrawingRoom() {
     setWordChoices([])
   }
 
+  function handleClearCanvas() {
+    socket.emit('clearCanvas')
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+  }
+
   if (!room) return <div className="loading-screen">Connecting...</div>
 
   const isDrawer = myClientId === room.gameState.currentDrawer
@@ -330,6 +338,9 @@ function DrawingRoom() {
                   onClick={() => setColor(c)}
                 />
               ))}
+              {isDrawer && phase === 'drawing' && (
+                <button className="clear-btn" onClick={handleClearCanvas} title="Clear Canvas">🗑️</button>
+              )}
             </div>
           </div>
         </div>
