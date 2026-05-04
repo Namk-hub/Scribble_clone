@@ -20,7 +20,7 @@ function DrawingRoom() {
   const [currentWord, setCurrentWord] = useState(null)
   const [phase, setPhase] = useState('waiting') // waiting | picking | drawing
   const [color, setColor] = useState('#1a1a1a')
-
+  const [tool, setTool] = useState("pen")
   // Drawing state refs (not state — no re-render needed)
   const isDrawing = useRef(false)
   const lastX = useRef(0)
@@ -97,8 +97,8 @@ function DrawingRoom() {
     })
 
     // Receive drawing from others
-    socket.on('draw', ({ x0, y0, x1, y1, color }) => {
-      drawLine(x0, y0, x1, y1, color, false)
+    socket.on('draw', ({ x0, y0, x1, y1, color, width }) => {
+      drawLine(x0, y0, x1, y1, color, width || 6, false)
     })
 
     socket.on('clearCanvas', () => {
@@ -110,6 +110,10 @@ function DrawingRoom() {
 
     socket.on('error', (err) => {
       console.error("Socket error:", err)
+    })
+
+    socket.on("gameOver", (scores) => {
+      navigate('/scoreboard', { state: { scores, players: room.players } })
     })
 
     return () => {
@@ -125,11 +129,12 @@ function DrawingRoom() {
       socket.off('draw')
       socket.off('clearCanvas')
       socket.off('error')
+      socket.off("gameOver")
     }
   }, [])
 
   // ─── Canvas Drawing ──────────────────────────────────────────────
-  function drawLine(x0, y0, x1, y1, strokeColor, emit) {
+  function drawLine(x0, y0, x1, y1, strokeColor, lineWidth = 6, emit) {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -138,13 +143,13 @@ function DrawingRoom() {
     ctx.moveTo(x0, y0)
     ctx.lineTo(x1, y1)
     ctx.strokeStyle = strokeColor
-    ctx.lineWidth = 6 // Fixed brush size
+    ctx.lineWidth = lineWidth
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.stroke()
 
     if (emit) {
-      socket.emit('draw', { x0, y0, x1, y1, color: strokeColor })
+      socket.emit('draw', { x0, y0, x1, y1, color: strokeColor, width: lineWidth })
     }
   }
 
@@ -172,7 +177,9 @@ function DrawingRoom() {
   function handleMouseMove(e) {
     if (!isDrawing.current) return
     const { x, y } = getPos(e, canvasRef.current)
-    drawLine(lastX.current, lastY.current, x, y, color, true)
+    const activeColor = tool === 'eraser' ? '#ffffff' : color
+    const activeWidth = tool === 'eraser' ? 30 : 6
+    drawLine(lastX.current, lastY.current, x, y, activeColor, activeWidth, true)
     lastX.current = x
     lastY.current = y
   }
@@ -337,13 +344,34 @@ function DrawingRoom() {
 
           {/* Color palette */}
           <div className="color-palette">
+            <div className="tool-box">
+              <button
+                className={`tool-btn ${tool === 'pen' ? 'active' : ''}`}
+                onClick={() => setTool('pen')}
+                title="Pen Tool"
+              >
+                ✏️
+              </button>
+              <button
+                className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`}
+                onClick={() => setTool('eraser')}
+                title="Eraser Tool"
+              >
+                🧽
+              </button>
+              <div className="tool-divider" />
+            </div>
+
             <div className="color-options">
               {COLORS.map(c => (
                 <button
                   key={c}
-                  className={`color-btn ${color === c ? 'active' : ''}`}
+                  className={`color-btn ${color === c && tool === 'pen' ? 'active' : ''}`}
                   style={{ background: c }}
-                  onClick={() => setColor(c)}
+                  onClick={() => {
+                    setColor(c);
+                    setTool('pen');
+                  }}
                 />
               ))}
               {isDrawer && phase === 'drawing' && (

@@ -14,7 +14,7 @@ function createRoom(playerName, socketId, clientId, avatar) {
       wordChoices: [],
       currentDrawer: null,
       currentWord: null,
-      round: 0,
+      round: 1,
       correctGuessers: [],
       scores: {},
       drawerQueue: [],
@@ -100,6 +100,10 @@ function nextTurn(roomId) {
   if (room.gameState.drawerQueue.length === 0) {
     room.gameState.drawerQueue = room.players.map(p => p.clientId);
     room.gameState.round += 1;
+    if (room.gameState.round > 3) {
+      room.gameState.phase = 'ended'
+      return { room, ended: true }
+    }
   }
 
   room.gameState.currentDrawer = room.gameState.drawerQueue.shift()

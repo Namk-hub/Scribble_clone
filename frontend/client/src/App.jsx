@@ -18,6 +18,7 @@ function App() {
         <Route path="/" element={<Lobby />} />
         <Route path="/room/:roomId" element={<Room />} />
         <Route path="/game/:roomId" element={<DrawingRoom />} />
+        <Route path="/scoreboard" element={<Scoreboard />} />
       </Routes>
     </BrowserRouter>
   )
