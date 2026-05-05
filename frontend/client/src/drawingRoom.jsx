@@ -14,7 +14,13 @@ function DrawingRoom() {
   const myClientId = getOrCreateClientId()
 
   const [room, setRoom] = useState(null)
+  const roomRef = useRef(null)
   const [messages, setMessages] = useState([])
+
+  useEffect(() => {
+    roomRef.current = room
+  }, [room])
+
   const [guess, setGuess] = useState('')
   const [wordChoices, setWordChoices] = useState([])
   const [currentWord, setCurrentWord] = useState(null)
@@ -112,8 +118,9 @@ function DrawingRoom() {
       console.error("Socket error:", err)
     })
 
-    socket.on("gameOver", (scores) => {
-      navigate('/scoreboard', { state: { scores, players: room.players } })
+    socket.on("gameOver", (data) => {
+      // data contains { scores, players, roomId }
+      navigate('/scoreboard', { state: data })
     })
 
     return () => {

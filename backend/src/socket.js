@@ -98,14 +98,29 @@ export default function initSocket(io) {
         io.to(room.id).emit("message", { type: 'system', text: `${player.name} guessed the word!` })
         
         if (result.turnOver) {
-          const { room: updatedRoom, list } = roomManager.nextTurn(socket.roomId)
-          const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
-          io.to(updatedRoom.id).emit("playerUpdate", updatedRoom)
-          io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`)
-          if (drawer) {
-            io.to(drawer.id).emit("wordChoices", list);
+          console.log("Turn over, moving to next turn...")
+          const nextTurnData = roomManager.nextTurn(socket.roomId)
+          const updatedRoom = nextTurnData.room
+          
+          if (nextTurnData.ended) {
+            console.log("Game ended! Emitting gameOver")
+            io.to(updatedRoom.id).emit("playerUpdate", updatedRoom)
+            io.to(updatedRoom.id).emit("gameOver", {
+              scores: updatedRoom.gameState.scores,
+              players: updatedRoom.players,
+              roomId: updatedRoom.id
+            })
+          } else {
+            const list = nextTurnData.list
+            const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
+            console.log(`Next turn: round ${updatedRoom.gameState.round}, drawer: ${drawer?.name}`)
+            io.to(updatedRoom.id).emit("playerUpdate", updatedRoom)
+            io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`)
+            if (drawer) {
+              io.to(drawer.id).emit("wordChoices", list);
+            }
+            io.to(updatedRoom.id).emit("clearCanvas");
           }
-          io.to(updatedRoom.id).emit("clearCanvas");
         }
       } else {
         // Broadcast incorrect guess as a chat message
