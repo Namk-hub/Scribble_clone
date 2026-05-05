@@ -1,37 +1,19 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getOrCreateClientId } from './utils';
 import './Scoreboard.css';
-
-// Mock avatars
-const AVATARS = ['🐱', '🐶', '🐸', '🐼', '🐯', '🐨', '🐰', '🦁', '🐷', '🦊'];
-
 function Scoreboard() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // MOCK DATA - You can replace this with location.state or socket data later
-  const players = [
-    { name: 'Sketchy_Cat', pts: 1240, avatar: 2 },
-    { name: 'Doodle_Bunny', pts: 980, avatar: 6 },
-    { name: 'ColorMaster', pts: 860, avatar: 4 },
-    { name: 'BrushKing', pts: 760, avatar: 3 },
-    { name: 'Rocket_Rider', pts: 645, avatar: 0 },
-    { name: 'Pinky_Star', pts: 530, avatar: 7 },
-    { name: 'ArtWhiz', pts: 420, avatar: 8 },
-    { name: 'DoughnutDude', pts: 310, avatar: 5 },
-  ];
+  const { scores, players, roomId } = location.state
+  players.sort((a, b) => scores[b.clientId] - scores[a.clientId])
 
   const winners = players.slice(0, 3);
   const others = players.slice(3);
 
   return (
     <div className="scoreboard-page">
-      {/* Background Scribbles (Decorations) */}
-      <div className="scribble scribble-pen">✏️</div>
-      <div className="scribble scribble-heart">❤️</div>
-      <div className="scribble scribble-star">⭐</div>
-      <div className="scribble scribble-loop">➰</div>
-      <div className="scribble scribble-zig">〰️</div>
-      <div className="scribble scribble-crown">👑</div>
 
       <header className="sb-header">
         <div className="sb-logo">Skribbl<span>.io</span></div>
@@ -50,42 +32,42 @@ function Scoreboard() {
 
         <div className="sb-podium">
           {/* 1st Place */}
-          <div className="podium-item item-1">
+          {winners[0] ? <div className="podium-item item-1">
             <div className="rank-badge">1</div>
-            <div className="podium-avatar">{AVATARS[winners[0].avatar]}</div>
+            <div className="podium-avatar">{winners[0].avatar}</div>
             <div className="podium-name">{winners[0].name}</div>
-            <div className="podium-pts">{winners[0].pts} pts</div>
-          </div>
+            <div className="podium-pts">{scores[winners[0].clientId]}</div>
+          </div> : null}
 
           {/* 2nd Place */}
-          <div className="podium-item item-2">
+          {winners[1] ? <div className="podium-item item-2">
             <div className="rank-badge">2</div>
-            <div className="podium-avatar">{AVATARS[winners[1].avatar]}</div>
+            <div className="podium-avatar">{winners[1].avatar}</div>
             <div className="podium-name">{winners[1].name}</div>
-            <div className="podium-pts">{winners[1].pts} pts</div>
-          </div>
+            <div className="podium-pts">{scores[winners[1].clientId]}</div>
+          </div> : null}
 
           {/* 3rd Place */}
-          <div className="podium-item item-3">
+          {winners[2] ? <div className="podium-item item-3">
             <div className="rank-badge">3</div>
-            <div className="podium-avatar">{AVATARS[winners[2].avatar]}</div>
+            <div className="podium-avatar">{winners[2].avatar}</div>
             <div className="podium-name">{winners[2].name}</div>
-            <div className="podium-pts">{winners[2].pts} pts</div>
-          </div>
+            <div className="podium-pts">{scores[winners[2].clientId]}</div>
+          </div> : null}
         </div>
 
         <div className="sb-standings">
           {others.map((player, index) => (
             <div key={index} className="standing-row">
               <div className="standing-rank">{index + 4}</div>
-              <div className="standing-avatar">{AVATARS[player.avatar]}</div>
+              <div className="standing-avatar">{player.avatar}</div>
               <div className="standing-name">{player.name}</div>
-              <div className="standing-pts">{player.pts} pts</div>
+              <div className="standing-pts">{scores[player.clientId]}</div>
             </div>
           ))}
         </div>
 
-        <button className="sb-continue-btn" onClick={() => navigate('/')}>
+        <button className="sb-continue-btn" onClick={() => navigate(`/room/${roomId}`)}>
           Continue <span>→</span>
         </button>
       </div>

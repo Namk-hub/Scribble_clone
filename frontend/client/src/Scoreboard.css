@@ -134,7 +134,7 @@
   justify-content: center;
   font-weight: 900;
   font-size: 1.2rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   position: absolute;
   top: -18px;
   z-index: 2;
@@ -147,7 +147,9 @@
   box-shadow: 0 15px 30px rgba(255, 212, 59, 0.15);
 }
 
-.item-1 .rank-badge { color: #fcc419; }
+.item-1 .rank-badge {
+  color: #fcc419;
+}
 
 .item-2 {
   background: #f3f0ff;
@@ -155,7 +157,9 @@
   order: 1;
 }
 
-.item-2 .rank-badge { color: #845ef7; }
+.item-2 .rank-badge {
+  color: #845ef7;
+}
 
 .item-3 {
   background: #fff4e6;
@@ -163,7 +167,9 @@
   order: 3;
 }
 
-.item-3 .rank-badge { color: #ff922b; }
+.item-3 .rank-badge {
+  color: #ff922b;
+}
 
 .podium-avatar {
   width: 80px;
@@ -176,7 +182,7 @@
   font-size: 2.5rem;
   margin: 10px 0 20px 0;
   border: 4px solid white;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .podium-name {
@@ -223,7 +229,7 @@
   font-size: 1.3rem;
   margin-right: 15px;
   border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .standing-name {
@@ -260,11 +266,3 @@
   box-shadow: 0 15px 30px rgba(0, 77, 255, 0.35);
   background: #0043e0;
 }
-
-/* Scribble Icons */
-.scribble-heart { top: 75%; left: 5%; color: #ff80ab; font-size: 3rem; transform: rotate(-15deg); }
-.scribble-star { top: 60%; left: 8%; color: #9c27b0; font-size: 2.5rem; transform: rotate(10deg); }
-.scribble-pen { top: 20%; left: 5%; color: #4361ee; font-size: 3.5rem; transform: rotate(-25deg); }
-.scribble-loop { top: 40%; left: 3%; color: #2196f3; font-size: 4rem; }
-.scribble-zig { top: 80%; right: 5%; color: #8bc34a; font-size: 5rem; transform: rotate(15deg); }
-.scribble-crown { top: 45%; right: 8%; color: #ffc107; font-size: 3rem; transform: rotate(15deg); }
