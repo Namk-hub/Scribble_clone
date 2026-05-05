@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Lobby from './lobby'
 import Room from './room'
 import DrawingRoom from './drawingRoom'
+import Scoreboard from './Scoreboard'
 
 function App() {
   useEffect(() => {
