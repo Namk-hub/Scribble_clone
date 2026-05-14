@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import socket from './socket'
-import { getOrCreateClientId } from './utils'
-import './drawingRoom.css'
+import socket from '../../services/socket'
+import { getOrCreateClientId } from '../../utils/utils'
+import './DrawingRoom.css'
 
 const COLORS = ['#1a1a1a', '#e63946', '#f4a261', '#f9c74f', '#4caf50', '#4361ee', '#9b5de5', '#f72585', '#8d6748', '#adb5bd']
 const AVATARS = ['🐱', '🐶', '🐸', '🐼', '🐯', '🐨']

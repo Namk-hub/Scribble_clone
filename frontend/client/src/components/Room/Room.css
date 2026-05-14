@@ -86,55 +86,7 @@ body {
 }
 
 
-.doodles {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
 
-.d {
-  position: absolute;
-  font-size: 2rem;
-  opacity: 0.35;
-}
-
-.d1 {
-  top: 30%;
-  left: 6%;
-  font-size: 2.4rem;
-  transform: rotate(-20deg);
-}
-
-.d2 {
-  top: 20%;
-  left: 10%;
-  font-size: 1.8rem;
-}
-
-.d3 {
-  top: 15%;
-  right: 8%;
-  font-size: 2rem;
-}
-
-.d4 {
-  bottom: 20%;
-  left: 8%;
-  font-size: 1.6rem;
-}
-
-.d5 {
-  bottom: 15%;
-  right: 10%;
-  font-size: 2rem;
-}
-
-.d6 {
-  top: 55%;
-  right: 6%;
-  font-size: 1.8rem;
-}
 
 .room-main {
   flex: 1;

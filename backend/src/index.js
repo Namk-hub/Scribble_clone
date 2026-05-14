@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import {Server} from "socket.io"
-import initSocket from "./socket.js"
+import initSocket from "./services/socket.js"
 
 const app=express();
 dotenv.config();

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import socket from './socket'
+import socket from '../../services/socket'
 import './Room.css'
-import { getOrCreateClientId } from './utils'
+import { getOrCreateClientId } from '../../utils/utils'
 
 const MAX_PLAYERS = 8
 
-import { AVATARS, AVATAR_COLORS } from './avatars'
+import { AVATARS, AVATAR_COLORS } from '../../utils/avatars'
 
 function Room() {
   const { roomId } = useParams()
@@ -67,16 +67,7 @@ function Room() {
         </button>
       </nav>
 
-      {/* Background doodles */}
-      <div className="doodles" aria-hidden="true">
-        <span className="d d1">✏️</span>
-        <span className="d d2">⭐</span>
-        <span className="d d3">👑</span>
-        <span className="d d4">💙</span>
-        <span className="d d5">💚</span>
-        <span className="d d6">🩷</span>
-      </div>
-
+     
       {/* Main */}
       <main className="room-main">
         <div className="room-card">

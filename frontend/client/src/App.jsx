@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import socket from "./socket";
+import socket from "./services/socket";
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Lobby from './lobby'
-import Room from './room'
-import DrawingRoom from './drawingRoom'
-import Scoreboard from './Scoreboard'
+import Lobby from './components/Lobby/Lobby'
+import Room from './components/Room/Room'
+import DrawingRoom from './components/Room/DrawingRoom'
+import Scoreboard from './components/Scoreboard/Scoreboard'
 
 function App() {
   useEffect(() => {

@@ -1,9 +1,9 @@
 import './Lobby.css'
 import { useEffect, useState } from "react";
-import socket from './socket'
+import socket from '../../services/socket'
 import { useNavigate } from 'react-router-dom'
-import { getOrCreateClientId } from './utils'
-import { AVATARS } from './avatars'
+import { getOrCreateClientId } from '../../utils/utils'
+import { AVATARS } from '../../utils/avatars'
 
 
 function Lobby() {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AVATARS } from './avatars';
+import { AVATARS } from '../../utils/avatars';
 import './Scoreboard.css';
 
 function Scoreboard() {

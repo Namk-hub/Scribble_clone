@@ -64,7 +64,7 @@ function removePlayer(roomId, socketId, clientId) {
     return { wasDeleted: true }
   }
 
-  // Remove from drawerQueue too
+
   room.gameState.drawerQueue = room.gameState.drawerQueue.filter(id => id !== leavingClientId)
 
   // Make the next person in the array (index 0) the new host
