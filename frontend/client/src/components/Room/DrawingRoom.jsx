@@ -16,6 +16,7 @@ function DrawingRoom() {
   const [room, setRoom] = useState(null)
   const roomRef = useRef(null)
   const [messages, setMessages] = useState([])
+  const [timeLeft, setTimeLeft] = useState(0)
 
   useEffect(() => {
     roomRef.current = room
@@ -90,6 +91,10 @@ function DrawingRoom() {
       addMessage({ type: 'correct', text: `Someone guessed correctly! +${points} pts` })
     })
 
+    socket.on('timerUpdate', (time) => {
+      setTimeLeft(time)
+    })
+
     socket.on('message', (msg) => {
       if (typeof msg === 'string') {
         addMessage({ type: 'system', text: msg })
@@ -132,6 +137,7 @@ function DrawingRoom() {
       socket.off('wordPicked')
       socket.off('turnStarted')
       socket.off('correctGuess')
+      socket.off('timerUpdate')
       socket.off('message')
       socket.off('draw')
       socket.off('clearCanvas')
@@ -252,8 +258,8 @@ function DrawingRoom() {
       <div className="round-bar">
         <div className="round-info">
           <span className="round-label">Round {room.gameState.round || 1} of 3</span>
-          <div className="timer">⏱ 01:15</div>
-          <div className="progress-bar"><div className="progress-fill" /></div>
+          <div className="timer">⏱ {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{ (timeLeft % 60).toString().padStart(2, '0') }</div>
+          <div className="progress-bar"><div className="progress-fill" style={{ width: `${(timeLeft / 60) * 100}%` }} /></div>
         </div>
         <div className="word-info">
           <span className="word-label">Word</span>
