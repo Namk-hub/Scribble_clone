@@ -16,11 +16,17 @@ function DrawingRoom() {
   const [room, setRoom] = useState(null)
   const roomRef = useRef(null)
   const [messages, setMessages] = useState([])
+  const messagesEndRef = useRef(null)
   const [timeLeft, setTimeLeft] = useState(0)
 
   useEffect(() => {
     roomRef.current = room
   }, [room])
+
+  // Auto-scroll chat to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   const [guess, setGuess] = useState('')
   const [wordChoices, setWordChoices] = useState([])
@@ -406,6 +412,7 @@ function DrawingRoom() {
                 }
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
           <form className="guess-form" onSubmit={handleGuessSubmit}>
             <input

@@ -1,5 +1,17 @@
 import roomManager from "./rooms.js";
 
+// Strip non-serializable properties (interval timer has circular refs)
+function sanitizeRoom(room) {
+  if (!room) return room;
+  return {
+    ...room,
+    gameState: {
+      ...room.gameState,
+      interval: undefined,
+    }
+  };
+}
+
 function clearRoomTimers(room) {
   if (room.gameState.interval) {
     clearInterval(room.gameState.interval);
@@ -22,7 +34,7 @@ function handleTurnEnd(roomId, io, timeUp = false) {
   
   if (nextTurnData.ended) {
     console.log("Game ended! Emitting gameOver");
-    io.to(updatedRoom.id).emit("playerUpdate", updatedRoom);
+    io.to(updatedRoom.id).emit("playerUpdate", sanitizeRoom(updatedRoom));
     io.to(updatedRoom.id).emit("gameOver", {
       scores: updatedRoom.gameState.scores,
       players: updatedRoom.players,
@@ -32,7 +44,7 @@ function handleTurnEnd(roomId, io, timeUp = false) {
     const list = nextTurnData.list;
     const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
     console.log(`Next turn: round ${updatedRoom.gameState.round}, drawer: ${drawer?.name}`);
-    io.to(updatedRoom.id).emit("playerUpdate", updatedRoom);
+    io.to(updatedRoom.id).emit("playerUpdate", sanitizeRoom(updatedRoom));
     io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`);
     if (drawer) {
       io.to(drawer.id).emit("wordChoices", list);
@@ -68,7 +80,7 @@ export default function initSocket(io) {
       const room = roomManager.createRoom(playerName, socket.id, clientId, avatar)
       socket.roomId = room.id
       socket.join(room.id)
-      socket.emit("created successfully", room)
+      socket.emit("created successfully", sanitizeRoom(room))
     });
 
     socket.on("getRoomData", ({ roomId, clientId }) => {
@@ -76,7 +88,7 @@ export default function initSocket(io) {
       if (!room) return socket.emit("error", "room not found")
       socket.roomId = room.id
       socket.join(room.id)
-      socket.emit("RoomData", room)
+      socket.emit("RoomData", sanitizeRoom(room))
       
       if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === clientId) {
         socket.emit("wordChoices", room.gameState.wordChoices)
@@ -95,8 +107,8 @@ export default function initSocket(io) {
       }
       socket.roomId = room.id
       socket.join(room.id)
-      io.to(room.id).emit("playerUpdate", room);
-      socket.emit("joinedRoom", room)
+      io.to(room.id).emit("playerUpdate", sanitizeRoom(room));
+      socket.emit("joinedRoom", sanitizeRoom(room))
       
       if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === clientId) {
         socket.emit("wordChoices", room.gameState.wordChoices)
@@ -117,7 +129,7 @@ export default function initSocket(io) {
         const list = returnvalue.list
         const drawer = room.players.find(p => p.clientId === room.gameState.currentDrawer);
         if (drawer) {
-          io.to(room.id).emit("playerUpdate", room)
+          io.to(room.id).emit("playerUpdate", sanitizeRoom(room))
           io.to(room.id).emit("turnStarted", `${drawer.name} is picking!`)
           io.to(drawer.id).emit("wordChoices", list);
           io.to(room.id).emit("clearCanvas");
@@ -135,7 +147,7 @@ export default function initSocket(io) {
       room.gameState.currentWord = drawerWord
       room.gameState.phase = "drawing"
       io.to(room.id).emit("drawingStarted", "drawing has beginnn")
-      io.to(room.id).emit("playerUpdate", room)
+      io.to(room.id).emit("playerUpdate", sanitizeRoom(room))
       
       startTimer(socket.roomId, io, 60);
     })
@@ -204,7 +216,7 @@ export default function initSocket(io) {
           return;
         }
 
-        io.to(result.room.id).emit("playerUpdate", result.room);
+        io.to(result.room.id).emit("playerUpdate", sanitizeRoom(result.room));
         io.to(result.room.id).emit("message", { type: 'system', text: `${player.name} has disconnected!` });
 
         if (result.room.gameState.phase === 'drawing') {
