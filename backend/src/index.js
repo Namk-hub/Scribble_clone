@@ -3,29 +3,27 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
-import {Server} from "socket.io"
-import initSocket from "./services/socket.js"
+import { Server } from "socket.io";
+import initSocket from "./services/socket.js";
 
-const app=express();
+const app = express();
 dotenv.config();
 
-const server=http.createServer(app)
-const io=new Server(server , {
+const server = http.createServer(app);
+const io = new Server(server, {
   cors: {
-    origin:"http://localhost:5173",
+    origin: "http://localhost:5173",
   },
-})
-initSocket(io)
+});
+initSocket(io);
 
-app.get('/',(req,res)=>{
-  res.send("your server is running successfully")
-})
+app.get("/", (req, res) => {
+  res.send("your server is running successfully");
+});
 
-
-
-const PORT=process.env.PORT || 3000
-server.listen(PORT,()=>{
-  console.log(`server is runing at http://localhost:${PORT}/`)
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`server is runing at http://localhost:${PORT}/`);
 });
 
 export default io;

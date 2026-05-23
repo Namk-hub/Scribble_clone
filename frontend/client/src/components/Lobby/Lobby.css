@@ -1,8 +1,9 @@
 .card h1 {
-  font-family: 'Schoolbell', cursive;
+  font-family: "Schoolbell", cursive;
 }
-.join-room p, .create-room p {
-  font-family: 'Schoolbell', cursive;
+.join-room p,
+.create-room p {
+  font-family: "Schoolbell", cursive;
   font-size: 1.1rem;
 }
 
@@ -19,7 +20,7 @@
   border-radius: 20px;
   padding: 40px;
   width: 400px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .card h1 {
@@ -87,7 +88,8 @@
   gap: 16px;
 }
 
-.join-room, .create-room {
+.join-room,
+.create-room {
   flex: 1;
   padding: 16px;
   border-radius: 12px;

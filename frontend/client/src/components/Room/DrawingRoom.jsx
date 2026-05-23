@@ -1,276 +1,332 @@
-import { useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import socket from '../../services/socket'
-import { getOrCreateClientId } from '../../utils/utils'
-import './DrawingRoom.css'
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import socket from "../../services/socket";
+import { getOrCreateClientId } from "../../utils/utils";
+import "./DrawingRoom.css";
 
-const COLORS = ['#1a1a1a', '#e63946', '#f4a261', '#f9c74f', '#4caf50', '#4361ee', '#9b5de5', '#f72585', '#8d6748', '#adb5bd']
-const AVATARS = ['🐱', '🐶', '🐸', '🐼', '🐯', '🐨']
+const COLORS = [
+  "#1a1a1a",
+  "#e63946",
+  "#f4a261",
+  "#f9c74f",
+  "#4caf50",
+  "#4361ee",
+  "#9b5de5",
+  "#f72585",
+  "#8d6748",
+  "#adb5bd",
+];
+const AVATARS = ["🐱", "🐶", "🐸", "🐼", "🐯", "🐨"];
 
 function DrawingRoom() {
-  const { roomId } = useParams()
-  const navigate = useNavigate()
-  const canvasRef = useRef(null)
-  const myClientId = getOrCreateClientId()
+  const { roomId } = useParams();
+  const navigate = useNavigate();
+  const canvasRef = useRef(null);
+  const myClientId = getOrCreateClientId();
 
-  const [room, setRoom] = useState(null)
-  const roomRef = useRef(null)
-  const [messages, setMessages] = useState([])
-  const messagesEndRef = useRef(null)
-  const [timeLeft, setTimeLeft] = useState(0)
+  const [room, setRoom] = useState(null);
+  const roomRef = useRef(null);
+  const [messages, setMessages] = useState([]);
+  const messagesEndRef = useRef(null);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
-    roomRef.current = room
-  }, [room])
+    roomRef.current = room;
+  }, [room]);
 
   // Auto-scroll chat to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  const [guess, setGuess] = useState('')
-  const [wordChoices, setWordChoices] = useState([])
-  const [currentWord, setCurrentWord] = useState(null)
-  const [phase, setPhase] = useState('waiting') // waiting | picking | drawing
-  const [color, setColor] = useState('#1a1a1a')
-  const [tool, setTool] = useState("pen")
+  const [guess, setGuess] = useState("");
+  const [wordChoices, setWordChoices] = useState([]);
+  const [currentWord, setCurrentWord] = useState(null);
+  const [phase, setPhase] = useState("waiting"); // waiting | picking | drawing
+  const [color, setColor] = useState("#1a1a1a");
+  const [tool, setTool] = useState("pen");
   // Drawing state refs (not state — no re-render needed)
-  const isDrawing = useRef(false)
-  const lastX = useRef(0)
-  const lastY = useRef(0)
+  const isDrawing = useRef(false);
+  const lastX = useRef(0);
+  const lastY = useRef(0);
 
   // ─── Socket Setup ───────────────────────────────────────────────
   useEffect(() => {
-    console.log("DrawingRoom mounted!")
-    console.log("socket connected?", socket.connected)
-    const savedName = sessionStorage.getItem('playerName') || 'Anonymous'
-    const savedAvatar = sessionStorage.getItem('avatar') || '0'
+    console.log("DrawingRoom mounted!");
+    console.log("socket connected?", socket.connected);
+    const savedName = sessionStorage.getItem("playerName") || "Anonymous";
+    const savedAvatar = sessionStorage.getItem("avatar") || "0";
 
     function onConnect() {
-      console.log("onConnect fired!")
-      socket.emit('joinRoom', { roomId, playerName: savedName, clientId: myClientId, avatar: savedAvatar })
-      socket.emit('getRoomData', { roomId, clientId: myClientId })
+      console.log("onConnect fired!");
+      socket.emit("joinRoom", {
+        roomId,
+        playerName: savedName,
+        clientId: myClientId,
+        avatar: savedAvatar,
+      });
+      socket.emit("getRoomData", { roomId, clientId: myClientId });
     }
 
     if (socket.connected) {
-      console.log("Socket already connected, calling onConnect")
-      onConnect()
+      console.log("Socket already connected, calling onConnect");
+      onConnect();
     } else {
-      console.log("Socket not connected, waiting for connect event")
-      socket.on('connect', onConnect)
+      console.log("Socket not connected, waiting for connect event");
+      socket.on("connect", onConnect);
     }
 
-    socket.on('RoomData', (room) => {
+    socket.on("RoomData", (room) => {
       setRoom(room);
       setPhase(room.gameState.phase);
-      if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === myClientId) {
-        setWordChoices(room.gameState.wordChoices || [])
+      if (
+        room.gameState.phase === "picking" &&
+        room.gameState.currentDrawer === myClientId
+      ) {
+        setWordChoices(room.gameState.wordChoices || []);
       }
-    })
-    socket.on('playerUpdate', (room) => {
+    });
+    socket.on("playerUpdate", (room) => {
       setRoom(room);
-      if (room.gameState.phase) setPhase(room.gameState.phase)
-    })
+      if (room.gameState.phase) setPhase(room.gameState.phase);
+    });
 
-    socket.on('wordChoices', (list) => {
-      setWordChoices(list)
-      setPhase('picking')
-    })
+    socket.on("wordChoices", (list) => {
+      setWordChoices(list);
+      setPhase("picking");
+    });
 
-    socket.on('drawingStarted', () => {
-      setPhase('drawing')
-      setWordChoices([])
-    })
+    socket.on("drawingStarted", () => {
+      setPhase("drawing");
+      setWordChoices([]);
+    });
 
-    socket.on('wordPicked', (word) => {
-      setCurrentWord(word)
-    })
+    socket.on("wordPicked", (word) => {
+      setCurrentWord(word);
+    });
 
-    socket.on('turnStarted', (msg) => {
-      addMessage({ type: 'system', text: msg })
-      setPhase('picking')
-      setCurrentWord(null)
-      setWordChoices([])
-    })
+    socket.on("turnStarted", (msg) => {
+      addMessage({ type: "system", text: msg });
+      setPhase("picking");
+      setCurrentWord(null);
+      setWordChoices([]);
+    });
 
-    socket.on('correctGuess', ({ clientId, points }) => {
-      addMessage({ type: 'correct', text: `Someone guessed correctly! +${points} pts` })
-    })
+    socket.on("correctGuess", ({ clientId, points }) => {
+      addMessage({
+        type: "correct",
+        text: `Someone guessed correctly! +${points} pts`,
+      });
+    });
 
-    socket.on('timerUpdate', (time) => {
-      setTimeLeft(time)
-    })
+    socket.on("timerUpdate", (time) => {
+      setTimeLeft(time);
+    });
 
-    socket.on('message', (msg) => {
-      if (typeof msg === 'string') {
-        addMessage({ type: 'system', text: msg })
+    socket.on("message", (msg) => {
+      if (typeof msg === "string") {
+        addMessage({ type: "system", text: msg });
       } else {
         // msg is { type, text, playerName }
         const isMe = msg.playerName === savedName;
-        const type = isMe ? 'mine' : (msg.type || 'system');
-        const text = msg.playerName ? `${msg.playerName}: ${msg.text}` : msg.text;
-        addMessage({ type, text })
+        const type = isMe ? "mine" : msg.type || "system";
+        const text = msg.playerName
+          ? `${msg.playerName}: ${msg.text}`
+          : msg.text;
+        addMessage({ type, text });
       }
-    })
+    });
 
     // Receive drawing from others
-    socket.on('draw', ({ x0, y0, x1, y1, color, width }) => {
-      drawLine(x0, y0, x1, y1, color, width || 6, false)
-    })
+    socket.on("draw", ({ x0, y0, x1, y1, color, width }) => {
+      drawLine(x0, y0, x1, y1, color, width || 6, false);
+    });
 
-    socket.on('clearCanvas', () => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-      const ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    })
+    socket.on("clearCanvas", () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
 
-    socket.on('error', (err) => {
-      console.error("Socket error:", err)
-    })
+    socket.on("error", (err) => {
+      console.error("Socket error:", err);
+    });
 
     socket.on("gameOver", (data) => {
       // data contains { scores, players, roomId }
-      navigate('/scoreboard', { state: data })
-    })
+      navigate("/scoreboard", { state: data });
+    });
 
     return () => {
-      socket.off('connect', onConnect)
-      socket.off('RoomData')
-      socket.off('playerUpdate')
-      socket.off('wordChoices')
-      socket.off('drawingStarted')
-      socket.off('wordPicked')
-      socket.off('turnStarted')
-      socket.off('correctGuess')
-      socket.off('timerUpdate')
-      socket.off('message')
-      socket.off('draw')
-      socket.off('clearCanvas')
-      socket.off('error')
-      socket.off("gameOver")
-    }
-  }, [])
+      socket.off("connect", onConnect);
+      socket.off("RoomData");
+      socket.off("playerUpdate");
+      socket.off("wordChoices");
+      socket.off("drawingStarted");
+      socket.off("wordPicked");
+      socket.off("turnStarted");
+      socket.off("correctGuess");
+      socket.off("timerUpdate");
+      socket.off("message");
+      socket.off("draw");
+      socket.off("clearCanvas");
+      socket.off("error");
+      socket.off("gameOver");
+    };
+  }, []);
 
   // ─── Canvas Drawing ──────────────────────────────────────────────
   function drawLine(x0, y0, x1, y1, strokeColor, lineWidth = 6, emit) {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
 
-    ctx.beginPath()
-    ctx.moveTo(x0, y0)
-    ctx.lineTo(x1, y1)
-    ctx.strokeStyle = strokeColor
-    ctx.lineWidth = lineWidth
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctx.stroke()
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
 
     if (emit) {
-      socket.emit('draw', { x0, y0, x1, y1, color: strokeColor, width: lineWidth })
+      socket.emit("draw", {
+        x0,
+        y0,
+        x1,
+        y1,
+        color: strokeColor,
+        width: lineWidth,
+      });
     }
   }
 
   function getPos(e, canvas) {
-    const rect = canvas.getBoundingClientRect()
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
-    }
+    };
   }
 
   function handleMouseDown(e) {
-    const isDrawer = myClientId === room?.gameState?.currentDrawer
-    if (!isDrawer || phase !== 'drawing') return
-    isDrawing.current = true
-    const { x, y } = getPos(e, canvasRef.current)
-    lastX.current = x
-    lastY.current = y
+    const isDrawer = myClientId === room?.gameState?.currentDrawer;
+    if (!isDrawer || phase !== "drawing") return;
+    isDrawing.current = true;
+    const { x, y } = getPos(e, canvasRef.current);
+    lastX.current = x;
+    lastY.current = y;
   }
 
   function handleMouseMove(e) {
-    if (!isDrawing.current) return
-    const { x, y } = getPos(e, canvasRef.current)
-    const activeColor = tool === 'eraser' ? '#ffffff' : color
-    const activeWidth = tool === 'eraser' ? 30 : 6
-    drawLine(lastX.current, lastY.current, x, y, activeColor, activeWidth, true)
-    lastX.current = x
-    lastY.current = y
+    if (!isDrawing.current) return;
+    const { x, y } = getPos(e, canvasRef.current);
+    const activeColor = tool === "eraser" ? "#ffffff" : color;
+    const activeWidth = tool === "eraser" ? 30 : 6;
+    drawLine(
+      lastX.current,
+      lastY.current,
+      x,
+      y,
+      activeColor,
+      activeWidth,
+      true,
+    );
+    lastX.current = x;
+    lastY.current = y;
   }
 
   function handleMouseUp() {
-    isDrawing.current = false
+    isDrawing.current = false;
   }
 
   function addMessage(msg) {
-    setMessages(prev => [...prev.slice(-50), { ...msg, id: Date.now() + Math.random() }])
+    setMessages((prev) => [
+      ...prev.slice(-50),
+      { ...msg, id: Date.now() + Math.random() },
+    ]);
   }
 
   function handleGuessSubmit(e) {
-    e.preventDefault()
-    if (!guess.trim()) return
-    socket.emit('guess', { guess: guess.trim() })
-    setGuess('')
+    e.preventDefault();
+    if (!guess.trim()) return;
+    socket.emit("guess", { guess: guess.trim() });
+    setGuess("");
   }
 
   function handlePickWord(word) {
-    socket.emit('pickWord', word)
-    setCurrentWord(word)
-    setWordChoices([])
+    socket.emit("pickWord", word);
+    setCurrentWord(word);
+    setWordChoices([]);
   }
 
   function handleClearCanvas() {
-    socket.emit('clearCanvas')
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    socket.emit("clearCanvas");
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  if (!room) return <div className="loading-screen">Connecting...</div>;
 
-  if (!room) return <div className="loading-screen">Connecting...</div>
-
-  const isDrawer = myClientId === room.gameState.currentDrawer
-  const drawerPlayer = room.players.find(p => p.clientId === room.gameState.currentDrawer)
+  const isDrawer = myClientId === room.gameState.currentDrawer;
+  const drawerPlayer = room.players.find(
+    (p) => p.clientId === room.gameState.currentDrawer,
+  );
 
   // Use local state currentWord (set when picking) or fallback to room state
-  const theWord = currentWord || room.gameState.currentWord
+  const theWord = currentWord || room.gameState.currentWord;
 
   const wordHint = theWord
-    ? (isDrawer ? theWord : theWord.split('').map((c, i) => c === ' ' ? ' ' : '_').join(' '))
-    : null
+    ? isDrawer
+      ? theWord
+      : theWord
+          .split("")
+          .map((c, i) => (c === " " ? " " : "_"))
+          .join(" ")
+    : null;
 
   return (
     <div className="game-container">
       {/* ── Navbar ── */}
       <nav className="navbar">
-        <div className="logo">Skribbl<span>.io</span></div>
-        <div className="nav-links">
-          <button onClick={() => navigate('/')}>Lobby</button>
+        <div className="logo">
+          Skribbl<span>.io</span>
         </div>
-        <div className="nav-icons">
-          <button>🔊</button>
-          <button>❓</button>
-          <button>⚙️</button>
-        </div>
+
       </nav>
 
       {/* ── Round Bar ── */}
       <div className="round-bar">
         <div className="round-info">
-          <span className="round-label">Round {room.gameState.round || 1} of 3</span>
-          <div className="timer">⏱ {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}</div>
-          <div className="progress-bar"><div className="progress-fill" style={{ width: `${(timeLeft / 60) * 100}%` }} /></div>
+          <span className="round-label">
+            Round {room.gameState.round || 1} of 3
+          </span>
+          <div className="timer">
+            ⏱{" "}
+            {Math.floor(timeLeft / 60)
+              .toString()
+              .padStart(2, "0")}
+            :{(timeLeft % 60).toString().padStart(2, "0")}
+          </div>
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${(timeLeft / 60) * 100}%` }}
+            />
+          </div>
         </div>
         <div className="word-info">
           <span className="word-label">Word</span>
           <div className="word-hint">
-            {wordHint || (phase === 'drawing' ? '... Loading word ...' : '---')}
+            {wordHint || (phase === "drawing" ? "... Loading word ..." : "---")}
           </div>
           {theWord && (
             <span className="letter-count">{theWord.length} letters</span>
@@ -280,27 +336,38 @@ function DrawingRoom() {
 
       {/* ── Main Layout ── */}
       <div className="main-container">
-
         {/* ── Left: Players ── */}
         <aside className="sidebar">
           <div className="room-id-box">
             <p className="section-label">Room ID</p>
             <h2>{roomId}</h2>
-            <button onClick={() => navigator.clipboard.writeText(roomId)}>⧉ Copy</button>
+            <button onClick={() => navigator.clipboard.writeText(roomId)}>
+              ⧉ Copy
+            </button>
           </div>
 
           <div className="players-list">
             <p className="section-label">PLAYERS ({room.players.length})</p>
             {room.players.map((p) => (
-              <div key={p.clientId} className={`player-row ${p.clientId === myClientId ? 'me' : ''}`}>
+              <div
+                key={p.clientId}
+                className={`player-row ${p.clientId === myClientId ? "me" : ""}`}
+              >
                 <div className="avatar">{AVATARS[parseInt(p.avatar) || 0]}</div>
                 <div className="player-info">
                   <span className="player-name">
-                    {p.name} {p.clientId === myClientId && <span className="you-badge">YOU</span>}
+                    {p.name}{" "}
+                    {p.clientId === myClientId && (
+                      <span className="you-badge">YOU</span>
+                    )}
                   </span>
-                  <span className="player-score">{room.gameState.scores[p.clientId] || 0} pts</span>
+                  <span className="player-score">
+                    {room.gameState.scores[p.clientId] || 0} pts
+                  </span>
                 </div>
-                {p.clientId === room.hostClientId && <span className="crown-icon">👑</span>}
+                {p.clientId === room.hostClientId && (
+                  <span className="crown-icon">👑</span>
+                )}
               </div>
             ))}
           </div>
@@ -315,7 +382,10 @@ function DrawingRoom() {
               width={800}
               height={520}
               className="drawing-canvas"
-              style={{ cursor: isDrawer && phase === 'drawing' ? 'crosshair' : 'default' }}
+              style={{
+                cursor:
+                  isDrawer && phase === "drawing" ? "crosshair" : "default",
+              }}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -326,13 +396,19 @@ function DrawingRoom() {
             />
 
             {/* Word picker overlay */}
-            {phase === 'picking' && isDrawer && wordChoices.length > 0 && (
+            {phase === "picking" && isDrawer && wordChoices.length > 0 && (
               <div className="overlay">
                 <div className="word-picker-modal">
                   <h3>Choose a word to draw!</h3>
                   <div className="word-choices">
                     {wordChoices.map((w) => (
-                      <button key={w} className="word-choice-btn" onClick={() => handlePickWord(w)}>{w}</button>
+                      <button
+                        key={w}
+                        className="word-choice-btn"
+                        onClick={() => handlePickWord(w)}
+                      >
+                        {w}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -340,22 +416,29 @@ function DrawingRoom() {
             )}
 
             {/* Waiting overlay */}
-            {phase === 'waiting' && (
+            {phase === "waiting" && (
               <div className="overlay">
                 <div className="word-picker-modal">
                   <h3>⏳ Waiting for host to start...</h3>
                   {myClientId === room.hostClientId && (
-                    <button className="start-game-btn" onClick={() => socket.emit('startGame')}>▶ Start Game</button>
+                    <button
+                      className="start-game-btn"
+                      onClick={() => socket.emit("startGame")}
+                    >
+                      ▶ Start Game
+                    </button>
                   )}
                 </div>
               </div>
             )}
 
             {/* Picking overlay for non-drawers */}
-            {phase === 'picking' && !isDrawer && (
+            {phase === "picking" && !isDrawer && (
               <div className="overlay">
                 <div className="word-picker-modal">
-                  <h3>✏️ {drawerPlayer?.name || 'Someone'} is picking a word...</h3>
+                  <h3>
+                    ✏️ {drawerPlayer?.name || "Someone"} is picking a word...
+                  </h3>
                 </div>
               </div>
             )}
@@ -365,15 +448,15 @@ function DrawingRoom() {
           <div className="color-palette">
             <div className="tool-box">
               <button
-                className={`tool-btn ${tool === 'pen' ? 'active' : ''}`}
-                onClick={() => setTool('pen')}
+                className={`tool-btn ${tool === "pen" ? "active" : ""}`}
+                onClick={() => setTool("pen")}
                 title="Pen Tool"
               >
                 ✏️
               </button>
               <button
-                className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`}
-                onClick={() => setTool('eraser')}
+                className={`tool-btn ${tool === "eraser" ? "active" : ""}`}
+                onClick={() => setTool("eraser")}
                 title="Eraser Tool"
               >
                 🧽
@@ -382,19 +465,25 @@ function DrawingRoom() {
             </div>
 
             <div className="color-options">
-              {COLORS.map(c => (
+              {COLORS.map((c) => (
                 <button
                   key={c}
-                  className={`color-btn ${color === c && tool === 'pen' ? 'active' : ''}`}
+                  className={`color-btn ${color === c && tool === "pen" ? "active" : ""}`}
                   style={{ background: c }}
                   onClick={() => {
                     setColor(c);
-                    setTool('pen');
+                    setTool("pen");
                   }}
                 />
               ))}
-              {isDrawer && phase === 'drawing' && (
-                <button className="clear-btn" onClick={handleClearCanvas} title="Clear Canvas">🗑️</button>
+              {isDrawer && phase === "drawing" && (
+                <button
+                  className="clear-btn"
+                  onClick={handleClearCanvas}
+                  title="Clear Canvas"
+                >
+                  🗑️
+                </button>
               )}
             </div>
           </div>
@@ -404,12 +493,13 @@ function DrawingRoom() {
         <aside className="chat-sidebar">
           <p className="section-label">CHAT</p>
           <div className="chat-messages">
-            {messages.map(m => (
+            {messages.map((m) => (
               <div key={m.id} className={`chat-message message-${m.type}`}>
-                {m.type === 'system' || m.type === 'correct'
-                  ? <span className="message-system">{m.text}</span>
-                  : <span>{m.text}</span>
-                }
+                {m.type === "system" || m.type === "correct" ? (
+                  <span className="message-system">{m.text}</span>
+                ) : (
+                  <span>{m.text}</span>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -419,10 +509,16 @@ function DrawingRoom() {
               className="guess-input"
               placeholder="Type your guess..."
               value={guess}
-              onChange={e => setGuess(e.target.value)}
+              onChange={(e) => setGuess(e.target.value)}
               disabled={isDrawer}
             />
-            <button className="guess-submit-btn" type="submit" disabled={isDrawer}>➤</button>
+            <button
+              className="guess-submit-btn"
+              type="submit"
+              disabled={isDrawer}
+            >
+              ➤
+            </button>
           </form>
         </aside>
       </div>
@@ -433,7 +529,7 @@ function DrawingRoom() {
         <span className="online-dot" />
       </div>
     </div>
-  )
+  );
 }
 
 export default DrawingRoom;

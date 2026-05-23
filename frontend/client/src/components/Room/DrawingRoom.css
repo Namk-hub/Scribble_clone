@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap");
 
 * {
   box-sizing: border-box;
@@ -22,7 +22,7 @@
 }
 
 body {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   background: var(--bg);
 }
 
@@ -31,7 +31,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 1.5rem;
   color: var(--blue);
 }
@@ -66,7 +66,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -242,7 +242,7 @@ body {
   border: none;
   border-radius: 8px;
   padding: 6px 16px;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: 700;
   cursor: pointer;
   font-size: 0.85rem;
@@ -395,7 +395,7 @@ body {
   border: 2px solid var(--blue);
   background: var(--blue-light);
   color: var(--blue);
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
@@ -415,7 +415,7 @@ body {
   border: none;
   background: var(--blue);
   color: white;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
@@ -452,7 +452,9 @@ body {
   border-radius: 50%;
   border: 3px solid transparent;
   cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s;
+  transition:
+    transform 0.15s,
+    border-color 0.15s;
 }
 
 .color-btn:hover {
@@ -596,7 +598,7 @@ body {
   padding: 10px 14px;
   border-radius: 12px;
   border: 2px solid var(--border);
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.2s;
