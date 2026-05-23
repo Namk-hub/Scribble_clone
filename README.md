@@ -1,4 +1,4 @@
-# Skribbl.io Clone
+# Drawzy
 
 A full-stack, real-time multiplayer drawing and guessing game inspired by Skribbl.io. Built with React, Node.js, and Socket.IO.
 
