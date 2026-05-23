@@ -288,9 +288,9 @@ function DrawingRoom() {
     ? isDrawer
       ? theWord
       : theWord
-          .split("")
-          .map((c, i) => (c === " " ? " " : "_"))
-          .join(" ")
+        .split("")
+        .map((c, i) => (c === " " ? " " : "_"))
+        .join(" ")
     : null;
 
   return (
@@ -298,7 +298,7 @@ function DrawingRoom() {
       {/* ── Navbar ── */}
       <nav className="navbar">
         <div className="logo">
-          Skribbl<span>.io</span>
+          Drawzy
         </div>
 
       </nav>

@@ -11,8 +11,30 @@
   min-height: 100vh;
   background-color: #e8f4ff;
   display: flex;
+  flex-direction: column;
+}
+
+.lobby-navbar {
+  background: white;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 14px 40px;
+  display: flex;
+  align-items: center;
+}
+
+.lobby-navbar-logo {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #4361ee;
+  letter-spacing: -0.5px;
+}
+
+.lobby-content {
+  flex: 1;
+  display: flex;
   justify-content: center;
   align-items: center;
+  padding: 32px 20px;
 }
 
 .card {

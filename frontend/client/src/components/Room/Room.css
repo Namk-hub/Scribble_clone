@@ -1,4 +1,4 @@
-﻿/* Room.css */
+/* Room.css */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -41,7 +41,8 @@ body {
 .navbar-logo {
   font-size: 1.6rem;
   font-weight: 900;
-  color: #111;
+  color: #4361ee;
+  letter-spacing: -0.5px;
 }
 
 .navbar-logo span {

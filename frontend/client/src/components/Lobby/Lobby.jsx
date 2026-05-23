@@ -53,6 +53,10 @@ function Lobby() {
 
   return (
     <div className="lobby">
+      <nav className="lobby-navbar">
+        <div className="lobby-navbar-logo">Drawzy</div>
+      </nav>
+      <div className="lobby-content">
       <div className="card">
         <h1>Enter the Lobby</h1>
         <p>Ready to unleash your inner artist?</p>
@@ -99,6 +103,7 @@ function Lobby() {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

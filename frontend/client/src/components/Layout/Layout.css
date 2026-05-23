@@ -1,0 +1,25 @@
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.simple-side-nav {
+  width: 200px;
+  background-color: #2563eb;
+  color: white;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.simple-side-nav h1 {
+  font-family: "Schoolbell", cursive;
+  margin: 0;
+  font-size: 2.5rem;
+  text-align: center;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}

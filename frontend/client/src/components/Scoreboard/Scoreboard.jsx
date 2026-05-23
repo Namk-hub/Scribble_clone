@@ -22,7 +22,7 @@ function Scoreboard() {
     <div className="scoreboard-page">
       <header className="sb-header">
         <div className="sb-logo">
-          Skribbl<span>.io</span>
+          Drawzy
         </div>
       </header>
 

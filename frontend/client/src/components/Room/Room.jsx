@@ -61,7 +61,7 @@ function Room() {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-logo">
-          random<span>.io</span>
+          Drawzy
         </div>
         <div className="nav-center">
           <span className="nav-link active">Lobby</span>
