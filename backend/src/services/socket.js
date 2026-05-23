@@ -23,6 +23,9 @@ function handleTurnEnd(roomId, io, timeUp = false) {
   const room = roomManager.rooms.get(roomId);
   if (!room) return;
 
+  // Guard: if not in drawing phase, turn already ended (prevents double-call)
+  if (room.gameState.phase !== 'drawing' && !timeUp) return;
+
   clearRoomTimers(room);
 
   if (timeUp) {
@@ -31,7 +34,7 @@ function handleTurnEnd(roomId, io, timeUp = false) {
 
   const nextTurnData = roomManager.nextTurn(roomId);
   const updatedRoom = nextTurnData.room;
-  
+
   if (nextTurnData.ended) {
     console.log("Game ended! Emitting gameOver");
     io.to(updatedRoom.id).emit("playerUpdate", sanitizeRoom(updatedRoom));
@@ -43,7 +46,6 @@ function handleTurnEnd(roomId, io, timeUp = false) {
   } else {
     const list = nextTurnData.list;
     const drawer = updatedRoom.players.find(p => p.clientId === updatedRoom.gameState.currentDrawer);
-    console.log(`Next turn: round ${updatedRoom.gameState.round}, drawer: ${drawer?.name}`);
     io.to(updatedRoom.id).emit("playerUpdate", sanitizeRoom(updatedRoom));
     io.to(updatedRoom.id).emit("turnStarted", `${drawer?.name || 'Someone'} is picking!`);
     if (drawer) {
@@ -73,10 +75,8 @@ function startTimer(roomId, io, duration = 75) {
 
 export default function initSocket(io) {
   io.on("connection", (socket) => {
-    console.log("user connected successfully", socket.id)
-    
+
     socket.on("createRoom", ({ playerName, clientId, avatar }) => {
-      console.log("createRoom received", playerName)
       const room = roomManager.createRoom(playerName, socket.id, clientId, avatar)
       socket.roomId = room.id
       socket.join(room.id)
@@ -89,7 +89,7 @@ export default function initSocket(io) {
       socket.roomId = room.id
       socket.join(room.id)
       socket.emit("RoomData", sanitizeRoom(room))
-      
+
       if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === clientId) {
         socket.emit("wordChoices", room.gameState.wordChoices)
       }
@@ -99,17 +99,15 @@ export default function initSocket(io) {
     })
 
     socket.on("joinRoom", ({ roomId, playerName, clientId, avatar }) => {
-      console.log(`joinRoom attempt: roomId=${roomId}, name=${playerName}, clientId=${clientId}`)
       const room = roomManager.joinRoom(roomId, playerName, socket.id, clientId, avatar)
       if (room.error) {
-        console.log(`joinRoom failed: ${room.error} for roomId: ${roomId}`)
         return socket.emit("error", "wrong roomId")
       }
       socket.roomId = room.id
       socket.join(room.id)
       io.to(room.id).emit("playerUpdate", sanitizeRoom(room));
       socket.emit("joinedRoom", sanitizeRoom(room))
-      
+
       if (room.gameState.phase === 'picking' && room.gameState.currentDrawer === clientId) {
         socket.emit("wordChoices", room.gameState.wordChoices)
       }
@@ -140,7 +138,7 @@ export default function initSocket(io) {
     socket.on("pickWord", (drawerWord) => {
       if (!socket.roomId) return
       const room = roomManager.rooms.get(socket.roomId)
-      
+
       const player = room.players.find(p => p.id === socket.id);
       if (!player || player.clientId !== room.gameState.currentDrawer) return;
 
@@ -148,7 +146,7 @@ export default function initSocket(io) {
       room.gameState.phase = "drawing"
       io.to(room.id).emit("drawingStarted", "drawing has beginnn")
       io.to(room.id).emit("playerUpdate", sanitizeRoom(room))
-      
+
       startTimer(socket.roomId, io, 60);
     })
 
@@ -165,13 +163,12 @@ export default function initSocket(io) {
       if (room.gameState.correctGuessers.includes(player.clientId)) return;
 
       const result = roomManager.submitGuess(socket.roomId, guess, socket.id)
-      
+
       if (result.correct) {
         io.to(room.id).emit("correctGuess", { clientId: player.clientId, points: result.points })
         io.to(room.id).emit("message", { type: 'system', text: `${player.name} guessed the word!` })
-        
+
         if (result.turnOver) {
-          console.log("Turn over, moving to next turn...")
           handleTurnEnd(socket.roomId, io, false);
         }
       } else {
@@ -196,7 +193,7 @@ export default function initSocket(io) {
         socket.to(socket.roomId).emit("clearCanvas")
       }
     })
-    
+
     socket.on("disconnect", () => {
       if (!socket.roomId) return
       const roomId = socket.roomId;
@@ -220,15 +217,15 @@ export default function initSocket(io) {
         io.to(result.room.id).emit("message", { type: 'system', text: `${player.name} has disconnected!` });
 
         if (result.room.gameState.phase === 'drawing') {
-            if (result.room.gameState.currentDrawer === player.clientId) {
-                io.to(result.room.id).emit("message", { type: 'system', text: `The drawer disconnected!` });
-                handleTurnEnd(roomId, io, false);
-            } else {
-                const remainingGuessers = result.room.players.length - 1;
-                if (remainingGuessers === 0 || result.room.gameState.correctGuessers.length >= remainingGuessers) {
-                    handleTurnEnd(roomId, io, false);
-                }
+          if (result.room.gameState.currentDrawer === player.clientId) {
+            io.to(result.room.id).emit("message", { type: 'system', text: `The drawer disconnected!` });
+            handleTurnEnd(roomId, io, false);
+          } else {
+            const remainingGuessers = result.room.players.length - 1;
+            if (remainingGuessers === 0 || result.room.gameState.correctGuessers.length >= remainingGuessers) {
+              handleTurnEnd(roomId, io, false);
             }
+          }
         }
       }, 5000);
     })

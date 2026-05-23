@@ -42,6 +42,10 @@ function joinRoom(roomID, playerName, socketId, clientId, avatar) {
   } else {
     room.players.push({ id: socketId, clientId, name: playerName, avatar: avatar })
     room.gameState.scores[clientId] = 0
+    // If game is already in progress, add to drawer queue so they get a turn
+    if (room.gameState.phase !== 'waiting') {
+      room.gameState.drawerQueue.push(clientId)
+    }
   }
 
   return room;
@@ -125,7 +129,7 @@ function submitGuess(roomId, guess, socketId) {
   if (!player || room.gameState.currentDrawer === player.clientId) return { correct: false };
 
 
-  if (room.gameState.currentWord === guess) {
+  if (room.gameState.currentWord && guess && room.gameState.currentWord.toLowerCase().trim() === guess.toLowerCase().trim()) {
     const clientId = player.clientId;
     if (room.gameState.correctGuessers.includes(clientId)) return { correct: false }
     room.gameState.correctGuessers.push(clientId)

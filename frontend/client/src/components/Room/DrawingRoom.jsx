@@ -264,7 +264,7 @@ function DrawingRoom() {
       <div className="round-bar">
         <div className="round-info">
           <span className="round-label">Round {room.gameState.round || 1} of 3</span>
-          <div className="timer">⏱ {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{ (timeLeft % 60).toString().padStart(2, '0') }</div>
+          <div className="timer">⏱ {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}</div>
           <div className="progress-bar"><div className="progress-fill" style={{ width: `${(timeLeft / 60) * 100}%` }} /></div>
         </div>
         <div className="word-info">
