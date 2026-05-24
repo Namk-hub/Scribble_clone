@@ -84,3 +84,10 @@ The frontend will run on `http://localhost:5173`.
 - **AFK Protection**: Added a 15-second timer for the word-picking phase. If a player goes AFK, their turn is automatically skipped.
 - **Crash Prevention**: Implemented state sanitization to strip circular interval references, preventing "Maximum call stack size exceeded" errors over WebSockets.
 - **Anti-Cheat Validation**: Added backend checks to ensure players can only pick from the words offered to them.
+
+## Demo video:-
+
+
+https://github.com/user-attachments/assets/543866c0-a38c-4daa-ace5-639322105b06
+
+
